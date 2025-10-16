@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 interface Barber {
   id: number;
@@ -37,8 +37,6 @@ interface Appointment {
   service: Service;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
-
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'appointments' | 'barbers' | 'services'>('appointments');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -52,8 +50,8 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       const [appointmentsRes, barbersRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/appointments`),
-        axios.get(`${API_BASE_URL}/barbers`)
+        api.get('/admin/appointments'),
+        api.get('/barbers')
       ]);
       setAppointments(appointmentsRes.data);
       setBarbers(barbersRes.data);
@@ -66,7 +64,7 @@ export default function AdminDashboard() {
 
   const updateAppointmentStatus = async (appointmentId: number, status: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/admin/appointments/${appointmentId}`, { status });
+      await api.put(`/admin/appointments/${appointmentId}`, { status });
       fetchData(); // Refresh data
     } catch (error) {
       console.error('Error updating appointment:', error);

@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 interface BarberForm {
   name: string;
   description: string;
   working_hours: string;
 }
-
-const API_BASE_URL = 'http://localhost:8000/api';
 
 export default function NewBarberPage() {
   const router = useRouter();
@@ -33,7 +31,7 @@ export default function NewBarberPage() {
         sunday: "closed"
       };
 
-      await axios.post(`${API_BASE_URL}/admin/barbers`, {
+      await api.post('/admin/barbers', {
         ...data,
         working_hours: JSON.stringify(workingHours)
       });

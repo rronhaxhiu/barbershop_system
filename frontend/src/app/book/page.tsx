@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 interface Barber {
   id: number;
@@ -29,8 +29,6 @@ interface BookingForm {
   appointment_datetime: string;
   notes?: string;
 }
-
-const API_BASE_URL = 'http://localhost:8000/api';
 
 export default function BookingPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -67,7 +65,7 @@ export default function BookingPage() {
 
   const fetchBarbers = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/barbers`);
+      const response = await api.get('/barbers');
       setBarbers(response.data);
     } catch (error) {
       console.error('Error fetching barbers:', error);
@@ -79,7 +77,7 @@ export default function BookingPage() {
   const onSubmit = async (data: BookingForm) => {
     setSubmitting(true);
     try {
-      await axios.post(`${API_BASE_URL}/appointments`, data);
+      await api.post('/appointments', data);
       setSuccess(true);
     } catch (error) {
       console.error('Error creating appointment:', error);

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useParams } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 interface BarberForm {
   name: string;
@@ -28,8 +28,6 @@ interface Barber {
   is_active: boolean;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
-
 export default function EditBarberPage() {
   const router = useRouter();
   const params = useParams();
@@ -47,7 +45,7 @@ export default function EditBarberPage() {
 
   const fetchBarber = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/barbers/${barberId}`);
+      const response = await api.get(`/barbers/${barberId}`);
       const barberData = response.data;
       setBarber(barberData);
       setValue('name', barberData.name);
@@ -82,7 +80,7 @@ export default function EditBarberPage() {
         ...data,
         working_hours: JSON.stringify(data.working_hours)
       };
-      await axios.put(`${API_BASE_URL}/admin/barbers/${barberId}`, submitData);
+      await api.put(`/admin/barbers/${barberId}`, submitData);
       router.push('/admin');
     } catch (error) {
       console.error('Error updating barber:', error);

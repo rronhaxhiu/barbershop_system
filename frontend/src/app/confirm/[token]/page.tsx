@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
-
-const API_BASE_URL = 'http://localhost:8000/api';
+import api from '@/lib/api';
 
 export default function ConfirmationPage() {
   const params = useParams();
@@ -22,7 +20,7 @@ export default function ConfirmationPage() {
 
   const confirmAppointment = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/appointments/confirm/${token}`);
+      const response = await api.get(`/appointments/confirm/${token}`);
       setConfirmed(true);
     } catch (error: any) {
       console.error('Error confirming appointment:', error);

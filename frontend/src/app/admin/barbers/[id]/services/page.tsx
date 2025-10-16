@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 interface Service {
   id: number;
@@ -28,8 +28,6 @@ interface ServiceForm {
   duration_minutes: number;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
-
 export default function ManageServicesPage() {
   const params = useParams();
   const barberId = params.id as string;
@@ -49,8 +47,8 @@ export default function ManageServicesPage() {
   const fetchData = async () => {
     try {
       const [barberRes, servicesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/barbers/${barberId}`),
-        axios.get(`${API_BASE_URL}/barbers/${barberId}/services`)
+        api.get(`/barbers/${barberId}`),
+        api.get(`/barbers/${barberId}/services`)
       ]);
       setBarber(barberRes.data);
       setServices(servicesRes.data);
@@ -65,7 +63,7 @@ export default function ManageServicesPage() {
   const onSubmit = async (data: ServiceForm) => {
     setSubmitting(true);
     try {
-      await axios.post(`${API_BASE_URL}/admin/services`, {
+      await api.post('/admin/services', {
         ...data,
         barber_id: parseInt(barberId)
       });
@@ -82,7 +80,7 @@ export default function ManageServicesPage() {
 
   const toggleServiceStatus = async (serviceId: number, currentStatus: boolean) => {
     try {
-      await axios.put(`${API_BASE_URL}/admin/services/${serviceId}`, {
+      await api.put(`/admin/services/${serviceId}`, {
         is_active: !currentStatus
       });
       fetchData(); // Refresh the services list
@@ -99,7 +97,7 @@ export default function ManageServicesPage() {
 
     if (confirmed) {
       try {
-        await axios.delete(`${API_BASE_URL}/admin/services/${serviceId}`);
+        await api.delete(`/admin/services/${serviceId}`);
         fetchData(); // Refresh the services list
       } catch (error) {
         console.error('Error deleting service:', error);

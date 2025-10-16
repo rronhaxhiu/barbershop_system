@@ -95,12 +95,18 @@ def get_all_appointments(
     db: Session = Depends(get_db)
 ):
     """Admin: Get all appointments with details"""
-    appointments = crud.get_appointments(db, skip=skip, limit=limit, status=status)
+    from sqlalchemy.orm import joinedload
     
-    # Load related data
-    for appointment in appointments:
-        appointment.barber = crud.get_barber(db, appointment.barber_id)
-        appointment.service = crud.get_service(db, appointment.service_id)
+    # Use eager loading to fetch appointments with their relationships
+    query = db.query(crud.Appointment).options(
+        joinedload(crud.Appointment.barber),
+        joinedload(crud.Appointment.service)
+    )
+    
+    if status:
+        query = query.filter(crud.Appointment.status == status)
+    
+    appointments = query.offset(skip).limit(limit).all()
     
     return appointments
 
