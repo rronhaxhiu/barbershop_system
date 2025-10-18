@@ -44,13 +44,27 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
     if not barber:
         raise HTTPException(status_code=404, detail="Barber not found")
     
-    # Validate service exists and belongs to barber
-    service = crud.get_service(db, appointment.service_id)
-    if not service or service.barber_id != appointment.barber_id:
-        raise HTTPException(status_code=404, detail="Service not found for this barber")
+    # Validate at least one service is provided
+    if not appointment.service_ids or len(appointment.service_ids) == 0:
+        raise HTTPException(status_code=400, detail="At least one service must be selected")
+    
+    # Validate all services exist and belong to barber
+    services = []
+    total_duration = 0
+    total_price = 0
+    
+    for service_id in appointment.service_ids:
+        service = crud.get_service(db, service_id)
+        if not service:
+            raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
+        if service.barber_id != appointment.barber_id:
+            raise HTTPException(status_code=400, detail=f"Service {service_id} does not belong to this barber")
+        services.append(service)
+        total_duration += service.duration_minutes
+        total_price += service.price
     
     # Check for appointment conflicts
-    if crud.check_appointment_conflict(db, appointment.barber_id, appointment.appointment_datetime, service.duration_minutes):
+    if crud.check_appointment_conflict(db, appointment.barber_id, appointment.appointment_datetime, total_duration):
         raise HTTPException(status_code=400, detail="Time slot not available")
     
     # Create appointment
@@ -58,14 +72,15 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
     
     # Send confirmation email
     try:
+        service_names = ", ".join([s.name for s in services])
         appointment_data = {
             'client_name': db_appointment.client_name,
             'client_email': db_appointment.client_email,
             'barber_name': barber.name,
-            'service_name': service.name,
+            'service_name': service_names,
             'appointment_datetime': db_appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M'),
-            'duration_minutes': service.duration_minutes,
-            'price': service.price,
+            'duration_minutes': total_duration,
+            'price': total_price,
             'notes': db_appointment.notes or '',
             'confirmation_token': db_appointment.confirmation_token,
             'confirmation_url': f"http://localhost:3000/confirm/{db_appointment.confirmation_token}"
@@ -100,7 +115,7 @@ def get_all_appointments(
     # Use eager loading to fetch appointments with their relationships
     query = db.query(crud.Appointment).options(
         joinedload(crud.Appointment.barber),
-        joinedload(crud.Appointment.service)
+        joinedload(crud.Appointment.services)
     )
     
     if status:

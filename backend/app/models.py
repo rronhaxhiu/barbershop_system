@@ -1,8 +1,16 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 import uuid
+
+# Association table for many-to-many relationship between appointments and services
+appointment_services = Table(
+    'appointment_services',
+    Base.metadata,
+    Column('appointment_id', Integer, ForeignKey('appointments.id', ondelete='CASCADE'), primary_key=True),
+    Column('service_id', Integer, ForeignKey('services.id', ondelete='CASCADE'), primary_key=True)
+)
 
 class Barber(Base):
     __tablename__ = "barbers"
@@ -34,14 +42,13 @@ class Service(Base):
     
     # Relationships
     barber = relationship("Barber", back_populates="services")
-    appointments = relationship("Appointment", back_populates="service")
+    appointments = relationship("Appointment", secondary=appointment_services, back_populates="services")
 
 class Appointment(Base):
     __tablename__ = "appointments"
     
     id = Column(Integer, primary_key=True, index=True)
     barber_id = Column(Integer, ForeignKey("barbers.id"), nullable=False)
-    service_id = Column(Integer, ForeignKey("services.id"), nullable=False)
     
     # Client information
     client_name = Column(String(100), nullable=False)
@@ -49,7 +56,7 @@ class Appointment(Base):
     client_phone = Column(String(20), nullable=False)
     
     # Appointment details
-    appointment_datetime = Column(DateTime(timezone=True), nullable=False)
+    appointment_datetime = Column(DateTime, nullable=False)
     status = Column(String(20), default="pending")  # pending, confirmed, cancelled
     confirmation_token = Column(String(100), unique=True, nullable=False)
     notes = Column(Text, nullable=True)
@@ -61,7 +68,7 @@ class Appointment(Base):
     
     # Relationships
     barber = relationship("Barber", back_populates="appointments")
-    service = relationship("Service", back_populates="appointments")
+    services = relationship("Service", secondary=appointment_services, back_populates="appointments")
     
     def generate_confirmation_token(self):
         """Generate a unique confirmation token"""

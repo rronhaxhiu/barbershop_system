@@ -80,8 +80,17 @@ def get_appointments(db: Session, skip: int = 0, limit: int = 100, status: Optio
     return query.offset(skip).limit(limit).all()
 
 def create_appointment(db: Session, appointment: AppointmentCreate) -> Appointment:
-    db_appointment = Appointment(**appointment.dict())
+    # Extract service_ids and create appointment without them
+    appointment_data = appointment.dict(exclude={'service_ids'})
+    db_appointment = Appointment(**appointment_data)
     db_appointment.confirmation_token = str(uuid.uuid4())
+    
+    # Add services to the appointment
+    for service_id in appointment.service_ids:
+        service = get_service(db, service_id)
+        if service:
+            db_appointment.services.append(service)
+    
     db.add(db_appointment)
     db.commit()
     db.refresh(db_appointment)
@@ -114,7 +123,7 @@ def check_appointment_conflict(db: Session, barber_id: int, appointment_datetime
     end_time = appointment_datetime + timedelta(minutes=duration_minutes)
 
     # Get all appointments for this barber that might conflict
-    existing_appointments = db.query(Appointment).join(Service).filter(
+    existing_appointments = db.query(Appointment).filter(
         Appointment.barber_id == barber_id,
         Appointment.status.in_(["pending", "confirmed"])
     ).all()
@@ -125,7 +134,9 @@ def check_appointment_conflict(db: Session, barber_id: int, appointment_datetime
     # Check each existing appointment for conflicts
     for existing_apt in existing_appointments:
         existing_start = existing_apt.appointment_datetime
-        existing_end = existing_apt.appointment_datetime + timedelta(minutes=existing_apt.service.duration_minutes)
+        # Calculate total duration for all services in the appointment
+        total_duration = sum(service.duration_minutes for service in existing_apt.services)
+        existing_end = existing_apt.appointment_datetime + timedelta(minutes=total_duration)
 
         # Check if times overlap
         if (start_time < existing_end and end_time > existing_start):

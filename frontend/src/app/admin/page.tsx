@@ -25,7 +25,6 @@ interface Service {
 interface Appointment {
   id: number;
   barber_id: number;
-  service_id: number;
   client_name: string;
   client_email: string;
   client_phone: string;
@@ -34,7 +33,7 @@ interface Appointment {
   notes?: string;
   created_at: string;
   barber: Barber;
-  service: Service;
+  services: Service[];
 }
 
 export default function AdminDashboard() {
@@ -165,12 +164,23 @@ export default function AdminDashboard() {
                               </p>
                             </div>
                           </div>
-                          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                            <div>
+                          <div className="mt-2 text-sm text-gray-600">
+                            <div className="mb-2">
                               <span className="font-medium">Barber:</span> {appointment.barber.name}
                             </div>
-                            <div>
-                              <span className="font-medium">Service:</span> {appointment.service.name} (${appointment.service.price})
+                            <div className="mb-2">
+                              <span className="font-medium">Services:</span>
+                              <ul className="list-disc list-inside ml-4">
+                                {appointment.services.map((service) => (
+                                  <li key={service.id}>
+                                    {service.name} - €{service.price} ({service.duration_minutes} min)
+                                  </li>
+                                ))}
+                              </ul>
+                              <div className="ml-4 mt-1 font-medium">
+                                Total: €{appointment.services.reduce((sum, s) => sum + s.price, 0).toFixed(2)} 
+                                ({appointment.services.reduce((sum, s) => sum + s.duration_minutes, 0)} min)
+                              </div>
                             </div>
                             <div>
                               <span className="font-medium">Date:</span> {new Date(appointment.appointment_datetime).toLocaleString()}

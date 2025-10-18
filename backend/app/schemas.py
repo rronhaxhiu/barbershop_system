@@ -57,10 +57,15 @@ class AppointmentBase(BaseModel):
     client_phone: str
     appointment_datetime: datetime
     notes: Optional[str] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 class AppointmentCreate(AppointmentBase):
     barber_id: int
-    service_id: int
+    service_ids: List[int]  # Changed from service_id to service_ids (list)
 
 class AppointmentUpdate(BaseModel):
     status: Optional[str] = None
@@ -70,7 +75,6 @@ class AppointmentUpdate(BaseModel):
 class Appointment(AppointmentBase):
     id: int
     barber_id: int
-    service_id: int
     status: str
     confirmation_token: str
     created_at: datetime
@@ -86,7 +90,7 @@ class BarberWithServices(Barber):
 
 class AppointmentWithDetails(Appointment):
     barber: Barber
-    service: Service
+    services: List[Service]  # Changed from service to services (list)
 
 # Booking availability schema
 class TimeSlot(BaseModel):
