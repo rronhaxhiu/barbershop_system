@@ -131,16 +131,15 @@ function EditBarberContent() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4 sm:py-6">
             <Link href="/admin" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">💈 Barbershop</span>
             </Link>
-            <nav className="flex items-center space-x-4">
-              <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
-              <Link href="/admin" className="text-gray-500 hover:text-gray-900">Dashboard</Link>
+            <nav className="flex items-center space-x-2 sm:space-x-4">
+              <Link href="/" className="hidden sm:inline text-gray-500 hover:text-gray-900">Home</Link>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
               >
                 Logout
               </button>
@@ -151,10 +150,10 @@ function EditBarberContent() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Edit Barber</h1>
-            <p className="mt-2 text-gray-600">Update {barber.name}'s information.</p>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Barber</h1>
+            <p className="mt-2 text-sm sm:text-base text-gray-600">Update {barber.name}'s information.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -228,32 +227,62 @@ function EditBarberContent() {
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-row gap-3">
               <Link
                 href="/admin"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="flex items-center justify-center space-x-2 px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium w-1/2 sm:w-auto"
               >
-                Cancel
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Cancel</span>
               </Link>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium w-1/2 sm:w-auto"
               >
-                {submitting ? 'Updating...' : 'Update Barber'}
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Save Changes</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
 
           {/* Additional Actions */}
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Actions</h3>
-            <div className="space-y-2">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+            <div className="flex gap-3">
               <Link
                 href={`/admin/barbers/${barberId}/services`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="flex items-center space-x-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg font-medium"
               >
-                Manage Services
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+                </svg>
+                <span>Manage Services</span>
+              </Link>
+              <Link
+                href="/admin"
+                className="flex items-center space-x-2 px-5 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Back to Dashboard</span>
               </Link>
             </div>
           </div>

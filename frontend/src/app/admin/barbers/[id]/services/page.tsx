@@ -172,16 +172,15 @@ function ManageServicesContent() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4 sm:py-6">
             <Link href="/admin" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">💈 Barbershop</span>
             </Link>
-            <nav className="flex items-center space-x-4">
-              <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
-              <Link href="/admin" className="text-gray-500 hover:text-gray-900">Dashboard</Link>
+            <nav className="flex items-center space-x-2 sm:space-x-4">
+              <Link href="/" className="hidden sm:inline text-gray-500 hover:text-gray-900">Home</Link>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
               >
                 Logout
               </button>
@@ -195,21 +194,44 @@ function ManageServicesContent() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Manage Services</h1>
-              <p className="mt-2 text-gray-600">Services for {barber.name}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manage Services</h1>
+              <p className="mt-2 text-sm sm:text-base text-gray-600">Services for {barber.name}</p>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-2 sm:space-x-3">
               <Link
                 href={`/admin/barbers/${barberId}/edit`}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="flex items-center justify-center sm:space-x-2 px-3 sm:px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
+                title="Edit Barber"
               >
-                Edit Barber
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="hidden sm:inline">Edit Barber</span>
               </Link>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                className={`flex items-center justify-center sm:space-x-2 px-3 sm:px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg ${
+                  showAddForm 
+                    ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                }`}
+                title={showAddForm ? 'Cancel' : 'Add Service'}
               >
-                {showAddForm ? 'Cancel' : 'Add Service'}
+                {showAddForm ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span className="hidden sm:inline">Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span className="hidden sm:inline">Add Service</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -288,20 +310,38 @@ function ManageServicesContent() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-4">
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="flex items-center space-x-2 px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
                 >
-                  Cancel
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium"
                 >
-                  {submitting ? 'Adding...' : 'Add Service'}
+                  {submitting ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Adding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Add Service</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -310,27 +350,28 @@ function ManageServicesContent() {
 
         {/* Services List */}
         <div className="bg-white rounded-lg shadow-md">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">
-              All Services ({services.filter(s => s.is_active).length} active, {services.filter(s => !s.is_active).length} inactive)
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h2 className="text-base sm:text-xl font-bold text-gray-900">
+              <span className="hidden sm:inline">All Services ({services.filter(s => s.is_active).length} active, {services.filter(s => !s.is_active).length} inactive)</span>
+              <span className="sm:hidden">Services ({services.filter(s => s.is_active).length}/{services.length})</span>
             </h2>
           </div>
           
           {services.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
+            <div className="px-4 sm:px-6 py-6 sm:py-8 text-center text-gray-500 text-sm sm:text-base">
               No services found. Add your first service above.
             </div>
           ) : (
             <ul className="divide-y divide-gray-200">
               {services.map((service) => (
-                <li key={service.id} className={`px-6 py-4 ${!service.is_active ? 'bg-gray-50 opacity-75' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <h3 className={`text-lg font-medium ${service.is_active ? 'text-gray-900' : 'text-gray-500 line-through'}`}>
+                <li key={service.id} className={`px-3 sm:px-6 py-3 sm:py-4 ${!service.is_active ? 'bg-gray-50 opacity-75' : ''}`}>
+                  <div className="flex items-start sm:items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <h3 className={`text-sm sm:text-lg font-medium ${service.is_active ? 'text-gray-900' : 'text-gray-500 line-through'} truncate`}>
                           {service.name}
                         </h3>
-                        <span className={`ml-3 px-2 py-1 text-xs font-medium rounded-full ${
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
                           service.is_active
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
@@ -339,30 +380,40 @@ function ManageServicesContent() {
                         </span>
                       </div>
                       {service.description && (
-                        <p className="text-sm text-gray-500 mt-1">{service.description}</p>
+                        <p className="hidden sm:block text-sm text-gray-500 mt-1">{service.description}</p>
                       )}
-                      <div className="mt-2 text-sm text-gray-600">
-                        <span className="font-medium">Price:</span> €{service.price} |
-                        <span className="font-medium ml-2">Duration:</span> {service.duration_minutes} minutes
+                      <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 font-medium">
+                        €{service.price} • {service.duration_minutes}min
                       </div>
                     </div>
-                    <div className="ml-4 flex space-x-2">
+                    <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
                       <button
                         onClick={() => toggleServiceStatusWithConfirm(service.id, service.is_active, service.name)}
-                        className={`px-3 py-1 text-xs font-medium rounded-md ${
+                        className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all shadow-md hover:shadow-lg hover:scale-110 ${
                           service.is_active
-                            ? 'text-orange-700 bg-orange-100 hover:bg-orange-200'
-                            : 'text-green-700 bg-green-100 hover:bg-green-200'
+                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                            : 'bg-green-500 hover:bg-green-600 text-white'
                         }`}
+                        title={service.is_active ? 'Deactivate' : 'Activate'}
                       >
-                        {service.is_active ? 'Deactivate' : 'Activate'}
+                        {service.is_active ? (
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
                       </button>
                       <button
                         onClick={() => deleteService(service.id, service.name)}
-                        className="px-3 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200"
-                        title="Delete service permanently"
+                        className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all shadow-md hover:shadow-lg hover:scale-110"
+                        title="Delete"
                       >
-                        🗑️ Delete
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -376,9 +427,12 @@ function ManageServicesContent() {
         <div className="mt-8 text-center">
           <Link
             href="/admin"
-            className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center space-x-2 px-6 py-3 border-2 border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm hover:shadow-md"
           >
-            ← Back to Admin Dashboard
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Back to Admin Dashboard</span>
           </Link>
         </div>
       </main>
