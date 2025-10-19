@@ -230,10 +230,10 @@ export default function BookingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading barbers...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-emerald-500 mx-auto"></div>
+          <p className="mt-4 text-white/60 tracking-wide">LOADING...</p>
         </div>
       </div>
     );
@@ -241,22 +241,26 @@ export default function BookingPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-          <div className="flex justify-center mb-4">
-            <svg className="w-20 h-20 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-            </svg>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-zinc-900 border border-white/10 rounded-2xl p-8 text-center">
+          <div className="w-16 h-px bg-emerald-500/50 mx-auto mb-8"></div>
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <svg className="w-12 h-12 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Appointment Booked!</h2>
-          <p className="text-gray-600 mb-6">
-            We&apos;ve sent a confirmation email to your email address. Please click the confirmation link to confirm your appointment.
+          <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">APPOINTMENT CONFIRMED</h2>
+          <div className="w-12 h-px bg-emerald-500/50 mx-auto mb-6"></div>
+          <p className="text-white/70 mb-8 leading-relaxed">
+            We&apos;ve sent a confirmation email with all the details. You can cancel your appointment up to 2 hours before your scheduled time using the link in the email.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-block px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-black font-semibold tracking-wider hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-lg shadow-emerald-500/30"
           >
-            Back to Home
+            BACK TO HOME
           </Link>
         </div>
       </div>
@@ -264,63 +268,70 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="fixed top-0 w-full bg-black/95 backdrop-blur-sm border-b border-white/10 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">💈 Barbershop</span>
+              <span className="text-2xl md:text-3xl font-bold text-white tracking-wider">HOUSE OF CUTZ</span>
             </Link>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
+            <nav className="flex space-x-4 md:space-x-8">
+              <Link href="/" className="text-white/60 hover:text-white transition-colors text-sm md:text-base">
+                HOME
+              </Link>
             </nav>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Book Your Appointment</h1>
-          
-          {/* Barber Information */}
-          {selectedBarber && (
-            <div className="mb-6 text-center">
-              <p className="text-sm text-gray-500">Your barber:</p>
-              <p className="font-semibold text-indigo-700 text-lg">{selectedBarber.name}</p>
-            </div>
-          )}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 pt-32">
+        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 md:p-10">
+          {/* Title Section */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-px bg-white/30 mx-auto mb-6"></div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">BOOK APPOINTMENT</h1>
+            
+            {/* Barber Information */}
+            {selectedBarber && (
+              <div className="mt-4">
+                <p className="text-sm text-white/50 tracking-wide">Master Barber</p>
+                <p className="font-semibold text-white text-lg tracking-wide">{selectedBarber.name}</p>
+              </div>
+            )}
+            <div className="w-12 h-px bg-white/20 mx-auto mt-6"></div>
+          </div>
 
           {/* Progress Bar */}
           <div className="mb-8">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Step {currentStep} of {totalSteps}
+            <div className="flex justify-between mb-3">
+              <span className="text-sm font-medium text-white/70 tracking-wide">
+                STEP {currentStep} OF {totalSteps}
               </span>
-              <span className="text-sm font-medium text-gray-700">
-                {currentStep === 1 ? 'Select Services' : currentStep === 2 ? 'Choose Date & Time' : 'Your Information'}
+              <span className="text-sm font-medium text-emerald-400 tracking-wide">
+                {currentStep === 1 ? 'SELECT SERVICES' : currentStep === 2 ? 'DATE & TIME' : 'YOUR DETAILS'}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
               <div 
-                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-emerald-500 to-green-400 h-1 transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
           </div>
 
           {/* Step Indicators */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-10">
             <div className="flex items-center space-x-4">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
                   <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
                     currentStep === step 
-                      ? 'border-indigo-600 bg-indigo-600 text-white' 
+                      ? 'border-emerald-500 bg-emerald-500 text-black shadow-lg shadow-emerald-500/50' 
                       : currentStep > step 
-                      ? 'border-green-500 bg-green-500 text-white'
-                      : 'border-gray-300 bg-white text-gray-400'
+                      ? 'border-emerald-500 bg-emerald-500 text-black'
+                      : 'border-white/30 bg-transparent text-white/50'
                   }`}>
                     {currentStep > step ? (
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -329,7 +340,7 @@ export default function BookingPage() {
                     ) : step}
                   </div>
                   {step < 3 && (
-                    <div className={`w-16 h-0.5 mx-2 ${currentStep > step ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`w-16 h-0.5 mx-2 rounded-full ${currentStep > step ? 'bg-emerald-500' : 'bg-white/20'}`}></div>
                   )}
                 </div>
               ))}
@@ -343,48 +354,48 @@ export default function BookingPage() {
             {/* Step 1: Service Selection */}
             {currentStep === 1 && selectedBarber && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">Choose Your Services</h2>
+                <h2 className="text-2xl font-semibold text-white text-center mb-6 tracking-wide">CHOOSE YOUR SERVICES</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedBarber.services.map((service) => (
                     <div
                       key={service.id}
                       onClick={() => handleServiceToggle(service.id)}
-                      className={`relative p-6 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${
+                      className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all ${
                         watchedServiceIds?.includes(service.id)
-                          ? 'border-indigo-600 bg-indigo-50 shadow-md'
-                          : 'border-gray-200 bg-white hover:border-indigo-300'
+                          ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
+                          : 'border-white/20 bg-black hover:border-emerald-500/50 hover:bg-emerald-500/5'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          <h3 className="text-lg font-semibold text-white mb-2 tracking-wide">
                             {service.name}
                           </h3>
                           {service.description && (
-                            <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                            <p className="text-sm text-white/60 mb-3 font-light">{service.description}</p>
                           )}
                           <div className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center text-gray-700">
-                              <svg className="w-4 h-4 mr-1.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span className="flex items-center text-emerald-400">
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               <span className="font-semibold">€{service.price}</span>
                             </span>
-                            <span className="flex items-center text-gray-700">
-                              <svg className="w-4 h-4 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span className="flex items-center text-white/70">
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               <span>{service.duration_minutes} min</span>
                             </span>
                           </div>
                         </div>
-                        <div className={`ml-4 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        <div className={`ml-4 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                           watchedServiceIds?.includes(service.id)
-                            ? 'border-indigo-600 bg-indigo-600'
-                            : 'border-gray-300 bg-white'
+                            ? 'border-emerald-500 bg-emerald-500 shadow-md shadow-emerald-500/50'
+                            : 'border-white/30 bg-transparent'
                         }`}>
                           {watchedServiceIds?.includes(service.id) && (
-                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                             </svg>
                           )}
@@ -396,20 +407,20 @@ export default function BookingPage() {
 
                 {/* Selected Services Summary */}
                 {selectedServices.length > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
-                    <h3 className="font-semibold text-gray-900 mb-3 text-lg">Your Selection</h3>
-                    <div className="space-y-2 text-sm text-gray-700">
+                  <div className="bg-emerald-500/5 p-6 border-2 border-emerald-500/30 rounded-xl">
+                    <h3 className="font-semibold text-emerald-400 mb-3 text-lg tracking-wide">YOUR SELECTION</h3>
+                    <div className="space-y-2 text-sm text-white/70">
                       {selectedServices.map((service) => (
                         <div key={service.id} className="flex justify-between">
                           <span>• {service.name}</span>
-                          <span className="font-medium">€{service.price}</span>
+                          <span className="font-medium text-white">€{service.price}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-green-300 flex justify-between font-semibold text-gray-900">
+                    <div className="mt-4 pt-4 border-t border-emerald-500/30 font-semibold text-white">
                       <div className="space-y-1">
-                        <div>Total Duration: {selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0)} minutes</div>
-                        <div className="text-lg text-indigo-700">Total Price: €{selectedServices.reduce((sum, s) => sum + s.price, 0).toFixed(2)}</div>
+                        <div className="text-white/80">Total Duration: {selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0)} minutes</div>
+                        <div className="text-xl text-emerald-400">Total Price: €{selectedServices.reduce((sum, s) => sum + s.price, 0).toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
@@ -420,20 +431,20 @@ export default function BookingPage() {
             {/* Step 2: Date & Time Selection */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">Choose Date & Time</h2>
+                <h2 className="text-2xl font-semibold text-white text-center mb-6 tracking-wide">CHOOSE DATE & TIME</h2>
                 
                 {/* Selected Services Summary */}
                 {selectedServices.length > 0 && (
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-gray-900 mb-2">Selected Services:</h3>
+                  <div className="bg-emerald-500/5 p-4 border-2 border-emerald-500/30 rounded-xl">
+                    <h3 className="font-medium text-emerald-400 mb-2 tracking-wide">SELECTED SERVICES:</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedServices.map((service) => (
-                        <span key={service.id} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                        <span key={service.id} className="inline-flex items-center px-3 py-1 text-sm font-medium border border-emerald-500/50 rounded-full text-white bg-emerald-500/10">
                           {service.name}
                         </span>
                       ))}
                     </div>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-white/60">
                       Total time needed: {selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0)} minutes
                     </p>
                   </div>
@@ -441,28 +452,28 @@ export default function BookingPage() {
 
                 {/* Date Picker */}
                 <div>
-                  <label className="block text-lg font-medium text-gray-900 mb-3 text-center">
-                    Select a Date
+                  <label className="block text-lg font-medium text-white mb-3 text-center tracking-wide">
+                    SELECT A DATE
                   </label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => handleDateChange(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full min-w-0 px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-base sm:text-lg"
+                    className="w-full min-w-0 px-3 sm:px-4 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white text-base sm:text-lg transition-all [color-scheme:dark]"
                   />
                 </div>
 
                 {/* Time Slots */}
                 {selectedDate && (
                   <div>
-                    <label className="block text-lg font-medium text-gray-900 mb-3 text-center">
-                      Select a Time Slot
+                    <label className="block text-lg font-medium text-white mb-3 text-center tracking-wide">
+                      SELECT A TIME SLOT
                     </label>
                     
                     {loadingSlots ? (
                       <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
                       </div>
                     ) : availableSlots.length > 0 ? (
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
@@ -473,8 +484,8 @@ export default function BookingPage() {
                             onClick={() => handleSlotSelect(slot.datetime)}
                             className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                               selectedSlot === slot.datetime
-                                ? 'bg-indigo-600 text-white shadow-md transform scale-105'
-                                : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
+                                : 'bg-black text-white border-2 border-white/30 hover:border-emerald-500 hover:bg-emerald-500/10'
                             }`}
                           >
                             {slot.time}
@@ -482,7 +493,7 @@ export default function BookingPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-white/60">
                         <p className="text-lg mb-2">No available slots for this date</p>
                         <p className="text-sm">Please select a different date</p>
                       </div>
@@ -498,27 +509,27 @@ export default function BookingPage() {
             {/* Step 3: Personal Information */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">Your Information</h2>
+                <h2 className="text-2xl font-semibold text-white text-center mb-6 tracking-wide">YOUR INFORMATION</h2>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Full Name <span className="text-red-600">*</span>
+                    <label className="block text-sm font-medium text-white mb-2 tracking-wide">
+                      FULL NAME <span className="text-emerald-400">*</span>
                     </label>
                     <input
                       type="text"
                       {...register('client_name', { required: 'Name is required' })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                      className="w-full px-4 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white placeholder:text-white/40 transition-all"
                       placeholder="John Doe"
                     />
                     {submitAttempted && errors.client_name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.client_name.message}</p>
+                      <p className="mt-1 text-sm text-emerald-400">{errors.client_name.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Email Address <span className="text-red-600">*</span>
+                    <label className="block text-sm font-medium text-white mb-2 tracking-wide">
+                      EMAIL ADDRESS <span className="text-emerald-400">*</span>
                     </label>
                     <input
                       type="email"
@@ -529,27 +540,27 @@ export default function BookingPage() {
                           message: 'Invalid email address'
                         }
                       })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                      className="w-full px-4 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white placeholder:text-white/40 transition-all"
                       placeholder="john.doe@example.com"
                     />
                     {submitAttempted && errors.client_email && (
-                      <p className="mt-1 text-sm text-red-600">{errors.client_email.message}</p>
+                      <p className="mt-1 text-sm text-emerald-400">{errors.client_email.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Phone Number <span className="text-red-600">*</span>
+                    <label className="block text-sm font-medium text-white mb-2 tracking-wide">
+                      PHONE NUMBER <span className="text-emerald-400">*</span>
                     </label>
                     <div className="flex gap-2">
                       {/* Country Code Selector */}
                       <select
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
-                        className="w-20 sm:w-32 px-2 sm:px-3 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 bg-white text-sm sm:text-base"
+                        className="w-20 sm:w-32 px-2 sm:px-3 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white text-sm sm:text-base transition-all"
                       >
                         {COUNTRY_CODES.map((country) => (
-                          <option key={country.code} value={country.code}>
+                          <option key={country.code} value={country.code} className="bg-black text-white">
                             {country.flag} {country.code}
                           </option>
                         ))}
@@ -569,49 +580,49 @@ export default function BookingPage() {
                             message: 'Phone number must be at least 7 digits'
                           }
                         })}
-                        className="flex-1 min-w-0 px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                        className="flex-1 min-w-0 px-3 sm:px-4 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white placeholder:text-white/40 transition-all"
                         placeholder="123 456 789"
                       />
                     </div>
                     {submitAttempted && errors.client_phone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.client_phone.message}</p>
+                      <p className="mt-1 text-sm text-emerald-400">{errors.client_phone.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Additional Notes (Optional)
+                    <label className="block text-sm font-medium text-white mb-2 tracking-wide">
+                      ADDITIONAL NOTES (OPTIONAL)
                     </label>
                     <textarea
                       {...register('notes')}
                       rows={4}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                      className="w-full px-4 py-3 border-2 border-white/30 rounded-xl bg-black focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-white placeholder:text-white/40 transition-all resize-none"
                       placeholder="Any special requests or notes..."
                     />
                   </div>
                 </div>
 
                 {/* Booking Summary */}
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border-2 border-indigo-200">
-                  <h3 className="font-semibold text-gray-900 mb-4 text-lg">Booking Summary</h3>
+                <div className="bg-emerald-500/5 p-6 border-2 border-emerald-500/30 rounded-xl">
+                  <h3 className="font-semibold text-emerald-400 mb-4 text-lg tracking-wide">BOOKING SUMMARY</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Barber:</span>
-                      <span className="font-medium text-gray-900">{selectedBarber?.name}</span>
+                      <span className="text-white/60">Barber:</span>
+                      <span className="font-medium text-white">{selectedBarber?.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Services:</span>
-                      <span className="font-medium text-gray-900">{selectedServices.length} selected</span>
+                      <span className="text-white/60">Services:</span>
+                      <span className="font-medium text-white">{selectedServices.length} selected</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Date:</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-white/60">Date:</span>
+                      <span className="font-medium text-white">
                         {selectedSlot ? new Date(selectedSlot).toLocaleString() : 'Not selected'}
                       </span>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-indigo-300">
-                      <span className="text-gray-700 font-medium">Total:</span>
-                      <span className="font-bold text-indigo-700 text-lg">
+                    <div className="flex justify-between pt-2 border-t border-emerald-500/30">
+                      <span className="text-white font-medium">Total:</span>
+                      <span className="font-bold text-emerald-400 text-lg">
                         €{selectedServices.reduce((sum, s) => sum + s.price, 0).toFixed(2)}
                       </span>
                     </div>
@@ -621,30 +632,30 @@ export default function BookingPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+            <div className="flex justify-between items-center pt-6 border-t border-white/20">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-medium transition-all tracking-wide ${
                   currentStep === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed border-2 border-white/10'
+                    : 'bg-white/10 text-white hover:bg-white/20 hover:border-white/50 border-2 border-white/30'
                 }`}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="hidden sm:inline">Previous</span>
+                <span className="hidden sm:inline">PREVIOUS</span>
               </button>
 
               {currentStep < 3 ? (
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-all"
+                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-black font-semibold hover:from-emerald-600 hover:to-green-600 transition-all tracking-wider shadow-lg shadow-emerald-500/30"
                 >
-                  <span className="hidden sm:inline">Next</span>
+                  <span className="hidden sm:inline">NEXT</span>
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -653,7 +664,7 @@ export default function BookingPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-4 sm:px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-black font-semibold hover:from-emerald-600 hover:to-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed tracking-wider shadow-lg shadow-emerald-500/30"
                 >
                   {submitting ? (
                     <>
@@ -661,11 +672,11 @@ export default function BookingPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="hidden sm:inline">Booking...</span>
+                      <span className="hidden sm:inline">BOOKING...</span>
                     </>
                   ) : (
                     <>
-                      <span className="hidden sm:inline">Confirm Booking</span>
+                      <span className="hidden sm:inline">CONFIRM BOOKING</span>
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                       </svg>
