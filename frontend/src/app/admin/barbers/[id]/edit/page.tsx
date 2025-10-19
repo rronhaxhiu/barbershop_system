@@ -7,6 +7,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { authUtils } from '@/lib/auth';
+import { useToast } from '@/components/Toast';
 
 interface BarberForm {
   name: string;
@@ -31,6 +32,7 @@ interface Barber {
 }
 
 function EditBarberContent() {
+  const { showError, showSuccess } = useToast();
   const router = useRouter();
   const params = useParams();
   const barberId = params.id as string;
@@ -73,7 +75,7 @@ function EditBarberContent() {
       });
     } catch (error) {
       console.error('Error fetching barber:', error);
-      alert('Failed to load barber data');
+      showError('Failed to load barber data');
     } finally {
       setLoading(false);
     }
@@ -87,10 +89,11 @@ function EditBarberContent() {
         working_hours: JSON.stringify(data.working_hours)
       };
       await api.put(`/admin/barbers/${barberId}`, submitData);
-      router.push('/admin');
+      showSuccess('Barber updated successfully!');
+      setTimeout(() => router.push('/admin'), 1000);
     } catch (error) {
       console.error('Error updating barber:', error);
-      alert('Failed to update barber. Please try again.');
+      showError('Failed to update barber. Please try again.');
     } finally {
       setSubmitting(false);
     }

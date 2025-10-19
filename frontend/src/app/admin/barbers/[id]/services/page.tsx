@@ -7,6 +7,8 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { authUtils } from '@/lib/auth';
+import { useToast } from '@/components/Toast';
+import { useModal } from '@/components/Modal';
 
 interface Service {
   id: number;
@@ -31,6 +33,8 @@ interface ServiceForm {
 }
 
 function ManageServicesContent() {
+  const { showError, showSuccess } = useToast();
+  const { confirm } = useModal();
   const params = useParams();
   const barberId = params.id as string;
   
@@ -54,13 +58,15 @@ function ManageServicesContent() {
     try {
       const [barberRes, servicesRes] = await Promise.all([
         api.get(`/barbers/${barberId}`),
-        api.get(`/barbers/${barberId}/services`)
+        api.get(`/barbers/${barberId}/services`, {
+          params: { include_inactive: true }
+        })
       ]);
       setBarber(barberRes.data);
       setServices(servicesRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Failed to load data');
+      showError('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -75,10 +81,11 @@ function ManageServicesContent() {
       });
       reset();
       setShowAddForm(false);
+      showSuccess('Service created successfully!');
       fetchData(); // Refresh the services list
     } catch (error) {
       console.error('Error creating service:', error);
-      alert('Failed to create service. Please try again.');
+      showError('Failed to create service. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -89,25 +96,46 @@ function ManageServicesContent() {
       await api.put(`/admin/services/${serviceId}`, {
         is_active: !currentStatus
       });
+      showSuccess(`Service ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       fetchData(); // Refresh the services list
     } catch (error) {
       console.error('Error updating service:', error);
-      alert('Failed to update service status');
+      showError('Failed to update service status');
+    }
+  };
+
+  const toggleServiceStatusWithConfirm = async (serviceId: number, currentStatus: boolean, serviceName: string) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const confirmed = await confirm({
+      title: `${action === 'deactivate' ? 'Deactivate' : 'Activate'} Service`,
+      message: `Are you sure you want to ${action} "${serviceName}"? ${currentStatus ? 'Deactivated services will not be available for new bookings but will remain visible in the admin panel.' : 'This service will become available for new bookings.'}`,
+      confirmText: action === 'deactivate' ? 'Deactivate' : 'Activate',
+      cancelText: 'Cancel',
+      type: action === 'deactivate' ? 'warning' : 'success'
+    });
+
+    if (confirmed) {
+      await toggleServiceStatus(serviceId, currentStatus);
     }
   };
 
   const deleteService = async (serviceId: number, serviceName: string) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to permanently delete "${serviceName}"?\n\nThis action cannot be undone and will affect any existing appointments using this service.`
-    );
+    const confirmed = await confirm({
+      title: 'Delete Service',
+      message: `Are you sure you want to permanently delete "${serviceName}"? This action cannot be undone and may affect existing appointments using this service.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
 
     if (confirmed) {
       try {
         await api.delete(`/admin/services/${serviceId}`);
+        showSuccess('Service deleted successfully!');
         fetchData(); // Refresh the services list
       } catch (error) {
         console.error('Error deleting service:', error);
-        alert('Failed to delete service. It may be in use by existing appointments.');
+        showError('Failed to delete service. It may be in use by existing appointments.');
       }
     }
   };
@@ -283,7 +311,9 @@ function ManageServicesContent() {
         {/* Services List */}
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Current Services ({services.length})</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              All Services ({services.filter(s => s.is_active).length} active, {services.filter(s => !s.is_active).length} inactive)
+            </h2>
           </div>
           
           {services.length === 0 ? (
@@ -318,7 +348,7 @@ function ManageServicesContent() {
                     </div>
                     <div className="ml-4 flex space-x-2">
                       <button
-                        onClick={() => toggleServiceStatus(service.id, service.is_active)}
+                        onClick={() => toggleServiceStatusWithConfirm(service.id, service.is_active, service.name)}
                         className={`px-3 py-1 text-xs font-medium rounded-md ${
                           service.is_active
                             ? 'text-orange-700 bg-orange-100 hover:bg-orange-200'
@@ -332,7 +362,7 @@ function ManageServicesContent() {
                         className="px-3 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200"
                         title="Delete service permanently"
                       >
-                        🗑️
+                        🗑️ Delete
                       </button>
                     </div>
                   </div>

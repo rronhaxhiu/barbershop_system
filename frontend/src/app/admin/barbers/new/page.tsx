@@ -7,6 +7,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { authUtils } from '@/lib/auth';
+import { useToast } from '@/components/Toast';
 
 interface BarberForm {
   name: string;
@@ -15,6 +16,7 @@ interface BarberForm {
 }
 
 function NewBarberContent() {
+  const { showError, showSuccess } = useToast();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<BarberForm>();
@@ -42,10 +44,11 @@ function NewBarberContent() {
         working_hours: JSON.stringify(workingHours)
       });
       
-      router.push('/admin');
+      showSuccess('Barber created successfully!');
+      setTimeout(() => router.push('/admin'), 1000);
     } catch (error) {
       console.error('Error creating barber:', error);
-      alert('Failed to create barber. Please try again.');
+      showError('Failed to create barber. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -122,7 +125,7 @@ function NewBarberContent() {
                 <p>• Monday - Friday: 9:00 AM - 5:00 PM</p>
                 <p>• Saturday: 9:00 AM - 3:00 PM</p>
                 <p>• Sunday: Closed</p>
-                <p className="mt-2 text-xs">Working hours can be customized later in the barber's profile.</p>
+                <p className="mt-2 text-xs">Working hours can be customized later in the barber&apos;s profile.</p>
               </div>
             </div>
 

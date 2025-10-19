@@ -8,7 +8,7 @@ from app.database import get_db
 from app import crud, schemas
 from app.email_service import email_service
 from app.auth import authenticate_admin, create_access_token, get_current_admin, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.models import Admin
+from app.models import Admin, Appointment
 
 router = APIRouter()
 
@@ -31,12 +31,12 @@ def get_barber(barber_id: int, db: Session = Depends(get_db)):
     return barber
 
 @router.get("/barbers/{barber_id}/services", response_model=List[schemas.Service])
-def get_barber_services(barber_id: int, db: Session = Depends(get_db)):
+def get_barber_services(barber_id: int, include_inactive: bool = False, db: Session = Depends(get_db)):
     """Get all services for a specific barber"""
     barber = crud.get_barber(db, barber_id)
     if not barber:
         raise HTTPException(status_code=404, detail="Barber not found")
-    return crud.get_services_by_barber(db, barber_id)
+    return crud.get_services_by_barber(db, barber_id, include_inactive)
 
 @router.post("/appointments", response_model=schemas.Appointment)
 def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Depends(get_db)):
@@ -169,13 +169,13 @@ def get_all_appointments(
     from sqlalchemy.orm import joinedload
     
     # Use eager loading to fetch appointments with their relationships
-    query = db.query(crud.Appointment).options(
-        joinedload(crud.Appointment.barber),
-        joinedload(crud.Appointment.services)
+    query = db.query(Appointment).options(
+        joinedload(Appointment.barber),
+        joinedload(Appointment.services)
     )
     
     if status:
-        query = query.filter(crud.Appointment.status == status)
+        query = query.filter(Appointment.status == status)
     
     appointments = query.offset(skip).limit(limit).all()
     
@@ -240,6 +240,17 @@ def update_service(
     if not updated_service:
         raise HTTPException(status_code=404, detail="Service not found")
     return updated_service
+
+@router.delete("/admin/services/{service_id}")
+def delete_service(
+    service_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
+    """Admin: Delete a service permanently"""
+    if not crud.delete_service(db, service_id):
+        raise HTTPException(status_code=404, detail="Service not found")
+    return {"message": "Service deleted successfully"}
 
 @router.put("/admin/appointments/{appointment_id}", response_model=schemas.Appointment)
 def update_appointment(

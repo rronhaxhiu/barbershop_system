@@ -40,14 +40,18 @@ def delete_barber(db: Session, barber_id: int) -> bool:
     return False
 
 # Service CRUD operations
-def get_service(db: Session, service_id: int) -> Optional[Service]:
-    return db.query(Service).filter(Service.id == service_id, Service.is_active == True).first()
+def get_service(db: Session, service_id: int, active_only: bool = True) -> Optional[Service]:
+    """Get a service by ID. By default only returns active services."""
+    query = db.query(Service).filter(Service.id == service_id)
+    if active_only:
+        query = query.filter(Service.is_active == True)
+    return query.first()
 
-def get_services_by_barber(db: Session, barber_id: int) -> List[Service]:
-    return db.query(Service).filter(
-        Service.barber_id == barber_id, 
-        Service.is_active == True
-    ).all()
+def get_services_by_barber(db: Session, barber_id: int, include_inactive: bool = False) -> List[Service]:
+    query = db.query(Service).filter(Service.barber_id == barber_id)
+    if not include_inactive:
+        query = query.filter(Service.is_active == True)
+    return query.all()
 
 def create_service(db: Session, service: ServiceCreate) -> Service:
     db_service = Service(**service.dict())
@@ -57,7 +61,8 @@ def create_service(db: Session, service: ServiceCreate) -> Service:
     return db_service
 
 def update_service(db: Session, service_id: int, service_update: ServiceUpdate) -> Optional[Service]:
-    db_service = get_service(db, service_id)
+    # Admin can update any service regardless of active status
+    db_service = get_service(db, service_id, active_only=False)
     if db_service:
         update_data = service_update.dict(exclude_unset=True)
         for field, value in update_data.items():
@@ -65,6 +70,15 @@ def update_service(db: Session, service_id: int, service_update: ServiceUpdate) 
         db.commit()
         db.refresh(db_service)
     return db_service
+
+def delete_service(db: Session, service_id: int) -> bool:
+    """Delete a service (hard delete)"""
+    db_service = get_service(db, service_id, active_only=False)
+    if db_service:
+        db.delete(db_service)
+        db.commit()
+        return True
+    return False
 
 # Appointment CRUD operations
 def get_appointment(db: Session, appointment_id: int) -> Optional[Appointment]:

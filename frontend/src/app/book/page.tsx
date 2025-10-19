@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 interface Barber {
   id: number;
@@ -47,6 +48,7 @@ const COUNTRY_CODES = [
 ];
 
 export default function BookingPage() {
+  const { showError, showWarning } = useToast();
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -134,7 +136,7 @@ export default function BookingPage() {
       setAvailableSlots(response.data.slots);
     } catch (error) {
       console.error('Error fetching available slots:', error);
-      alert('Failed to load available time slots. Please try again.');
+      showError('Failed to load available time slots. Please try again.');
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -186,7 +188,7 @@ export default function BookingPage() {
         }
       }
       
-      alert(errorMessage);
+      showError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -195,16 +197,16 @@ export default function BookingPage() {
   const nextStep = () => {
     // Validate current step before proceeding
     if (currentStep === 1 && (!watchedServiceIds || watchedServiceIds.length === 0)) {
-      alert('Please select at least one service');
+      showWarning('Please select at least one service');
       return;
     }
     if (currentStep === 2) {
       if (!selectedDate) {
-        alert('Please select a date');
+        showWarning('Please select a date');
         return;
       }
       if (!selectedSlot) {
-        alert('Please select a time slot');
+        showWarning('Please select a time slot');
         return;
       }
     }
@@ -568,9 +570,6 @@ export default function BookingPage() {
                     {errors.client_phone && (
                       <p className="mt-1 text-sm text-red-600">{errors.client_phone.message}</p>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">
-                      Example: {countryCode} 49 123 456
-                    </p>
                   </div>
 
                   <div>

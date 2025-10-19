@@ -59,6 +59,15 @@ class AppointmentBase(BaseModel):
     appointment_datetime: datetime
     notes: Optional[str] = None
     
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+class AppointmentCreate(AppointmentBase):
+    barber_id: int
+    service_ids: List[int]  # Changed from service_id to service_ids (list)
+    
     @field_validator('client_phone')
     @classmethod
     def validate_phone(cls, v: str) -> str:
@@ -79,15 +88,6 @@ class AppointmentBase(BaseModel):
             raise ValueError('Phone number must contain at least 7 digits')
         
         return v
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-class AppointmentCreate(AppointmentBase):
-    barber_id: int
-    service_ids: List[int]  # Changed from service_id to service_ids (list)
 
 class AppointmentUpdate(BaseModel):
     status: Optional[str] = None
