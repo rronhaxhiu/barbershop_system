@@ -98,7 +98,7 @@ class Appointment(AppointmentBase):
     id: int
     barber_id: int
     status: str
-    confirmation_token: str
+    cancellation_token: str
     created_at: datetime
     updated_at: Optional[datetime] = None
     confirmed_at: Optional[datetime] = None

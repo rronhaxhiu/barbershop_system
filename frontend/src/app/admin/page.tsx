@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -43,7 +43,7 @@ interface Appointment {
 function AdminDashboardContent() {
   const { showError, showSuccess } = useToast();
   const { confirm } = useModal();
-  const [activeTab, setActiveTab] = useState<'appointments' | 'barbers' | 'analytics'>('appointments');
+  const [activeTab, setActiveTab] = useState<'appointments' | 'barbers' | 'analytics' | 'settings'>('appointments');
   const [appointmentsView, setAppointmentsView] = useState<'upcoming' | 'history'>('upcoming');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -62,6 +62,15 @@ function AdminDashboardContent() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
   const [isModalAnimating, setIsModalAnimating] = useState(false);
+  
+  // Password change modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState<{[key: string]: string}>({});
 
   // Trigger animation when modal opens
   useEffect(() => {
@@ -300,7 +309,6 @@ function AdminDashboardContent() {
   const historyStats = {
     total: filteredHistory.length,
     confirmed: filteredHistory.filter(a => a.status === 'confirmed').length,
-    pending: filteredHistory.filter(a => a.status === 'pending').length,
     cancelled: filteredHistory.filter(a => a.status === 'cancelled').length
   };
 
@@ -348,7 +356,6 @@ function AdminDashboardContent() {
 
     const totalAppointments = appointments.length;
     const confirmedAppointments = appointments.filter(a => a.status === 'confirmed').length;
-    const pendingAppointments = appointments.filter(a => a.status === 'pending').length;
     const cancelledAppointments = appointments.filter(a => a.status === 'cancelled').length;
 
     // Revenue by barber
@@ -440,7 +447,6 @@ function AdminDashboardContent() {
       totalRevenue,
       totalAppointments,
       confirmedAppointments,
-      pendingAppointments,
       cancelledAppointments,
       revenueByBarber,
       popularServices,
@@ -506,13 +512,7 @@ function AdminDashboardContent() {
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">💈 Barbershop</span>
             </Link>
             <nav className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/" className="hidden sm:inline text-gray-500 hover:text-gray-900">Home</Link>
-              <button
-                onClick={handleLogout}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-              >
-                Logout
-              </button>
+              <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
             </nav>
           </div>
         </div>
@@ -523,7 +523,7 @@ function AdminDashboardContent() {
         {/* Tabs */}
         <div className="mb-6 sm:mb-8">
           {/* Mobile Tabs - Full Width Grid */}
-          <nav className="grid grid-cols-3 gap-2 sm:hidden mb-4">
+          <nav className="grid grid-cols-4 gap-2 sm:hidden mb-4">
             <button
               onClick={() => setActiveTab('appointments')}
               className={`py-3 px-2 rounded-lg font-semibold text-xs transition-all ${
@@ -571,6 +571,22 @@ function AdminDashboardContent() {
                 <span>Analytics</span>
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-3 px-2 rounded-lg font-semibold text-xs transition-all ${
+                activeTab === 'settings'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Settings</span>
+              </div>
+            </button>
           </nav>
 
           {/* Desktop Tabs - Traditional Style */}
@@ -604,6 +620,16 @@ function AdminDashboardContent() {
               }`}
             >
               📊 Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === 'settings'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              ⚙️ Settings
             </button>
           </nav>
         </div>
@@ -698,158 +724,36 @@ function AdminDashboardContent() {
                       hour12: true 
                     });
                     
-                    // Status colors for left border
-                    const borderColor = 
-                      appointment.status === 'confirmed' ? 'border-l-green-500' :
-                      appointment.status === 'cancelled' ? 'border-l-red-500' :
-                      'border-l-yellow-500';
-                    
-                    // Swipe gesture component for mobile
-                    const SwipeableCard = () => {
-                      const [touchStart, setTouchStart] = useState<number | null>(null);
-                      const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
-                      const [isSwiping, setIsSwiping] = useState(false);
-                      const [didSwipe, setDidSwipe] = useState(false);
-                      const touchElementRef = useRef<HTMLDivElement>(null);
-                      
-                      const swipeThreshold = 100; // pixels needed to trigger action
-                      
-                      // Disable swiping for confirmed or cancelled appointments
-                      const canSwipe = appointment.status === 'pending';
-                      
-                      const handleTouchStart = (e: TouchEvent) => {
-                        if (!canSwipe) return;
-                        setTouchStart(e.touches[0].clientX);
-                        setTouchCurrent(e.touches[0].clientX);
-                        setIsSwiping(true);
-                        setDidSwipe(false);
-                      };
-                      
-                      const handleTouchMove = (e: TouchEvent) => {
-                        if (!touchStart || !canSwipe) return;
-                        const currentX = e.touches[0].clientX;
-                        setTouchCurrent(currentX);
-                        // Prevent scrolling while swiping horizontally
-                        if (Math.abs(currentX - touchStart) > 10) {
-                          e.preventDefault();
-                          setDidSwipe(true);
-                        }
-                      };
-                      
-                      const handleTouchEnd = () => {
-                        if (!touchStart || !touchCurrent || !canSwipe) {
-                          setIsSwiping(false);
-                          setTouchStart(null);
-                          setTouchCurrent(null);
-                          return;
-                        }
-                        
-                        const diff = touchCurrent - touchStart;
-                        
-                        // Right swipe - Confirm (only if pending)
-                        if (diff > swipeThreshold && appointment.status === 'pending') {
-                          updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name);
-                        }
-                        // Left swipe - Cancel (only if not already cancelled)
-                        else if (diff < -swipeThreshold && appointment.status !== 'cancelled') {
-                          updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name);
-                        }
-                        
-                        setIsSwiping(false);
-                        setTouchStart(null);
-                        setTouchCurrent(null);
-                        // Reset didSwipe after a short delay to allow onClick to check it
-                        setTimeout(() => setDidSwipe(false), 100);
-                      };
-
-                      // Attach touch event listeners with passive: false
-                      useEffect(() => {
-                        const element = touchElementRef.current;
-                        if (!element) return;
-
-                        element.addEventListener('touchstart', handleTouchStart, { passive: true });
-                        element.addEventListener('touchmove', handleTouchMove, { passive: false });
-                        element.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-                        return () => {
-                          element.removeEventListener('touchstart', handleTouchStart);
-                          element.removeEventListener('touchmove', handleTouchMove);
-                          element.removeEventListener('touchend', handleTouchEnd);
-                        };
-                      }, [touchStart, touchCurrent, canSwipe]);
-                      
-                      const swipeOffset = isSwiping && touchStart && touchCurrent ? touchCurrent - touchStart : 0;
-                      const clampedOffset = Math.max(-200, Math.min(200, swipeOffset));
-                      
-                      // Show action hints
-                      const showConfirmHint = swipeOffset > 30 && appointment.status === 'pending';
-                      const showCancelHint = swipeOffset < -30 && appointment.status !== 'cancelled';
-                      
-                      return (
-                        <div className="relative overflow-hidden">
-                          {/* Background action indicators - Full width colored backgrounds */}
-                          {/* Confirm background (green, left side for right swipe) */}
-                          <div className={`absolute inset-y-0 left-0 right-0 bg-green-500 flex items-center justify-start px-8 transition-opacity duration-200 ${showConfirmHint ? 'opacity-100' : 'opacity-0'}`}>
-                            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          
-                          {/* Cancel background (red, right side for left swipe) */}
-                          <div className={`absolute inset-y-0 left-0 right-0 bg-red-500 flex items-center justify-end px-8 transition-opacity duration-200 ${showCancelHint ? 'opacity-100' : 'opacity-0'}`}>
-                            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </div>
-                          
-                          {/* Swipeable content with border */}
-                          <div
-                            ref={touchElementRef}
-                            style={{
-                              transform: `translateX(${clampedOffset}px)`,
-                              transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                            onClick={() => !didSwipe && setSelectedAppointmentDetails(appointment)}
-                            className={`bg-white relative z-10 cursor-pointer border-l-8 ${borderColor}`}
-                          >
-                            <div className="px-4 py-4 relative">
-                            {/* Content Layout - Left: Name, Right: Time */}
-                            <div className="flex items-center justify-between gap-4">
-                              {/* Left Side - Name */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-xl font-bold text-gray-900 break-words">
-                                {appointment.client_name}
-                              </h3>
-                            </div>
-                              
-                              {/* Right Side - Time (No Icon, Vertically Centered) */}
-                              <div className="flex items-center justify-end flex-shrink-0">
-                                <div className="text-4xl  text-gray-900 whitespace-nowrap">
-                                  {timeString}
-                          </div>
-                              </div>
-                            </div>
-                          </div>
-                          </div>
-                        </div>
-                      );
-                    };
-                    
                     return (
                       <div 
                         key={appointment.id}
                         id={`appointment-${appointment.id}`}
                         className="bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden relative transition-all duration-200"
                       >
-                        {/* Mobile View with Swipe */}
-                        <div className="lg:hidden">
-                          <SwipeableCard />
+                        {/* Mobile View */}
+                        <div 
+                          className="lg:hidden px-4 py-4 cursor-pointer"
+                          onClick={() => setSelectedAppointmentDetails(appointment)}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            {/* Left Side - Name */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-xl font-bold text-gray-900 break-words">
+                                {appointment.client_name}
+                              </h3>
+                            </div>
+                            
+                            {/* Right Side - Time */}
+                            <div className="flex items-center justify-end flex-shrink-0">
+                              <div className="text-4xl text-gray-900 whitespace-nowrap">
+                                {timeString}
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Desktop View */}
                         <div className="hidden lg:block px-6 py-5 relative">
-                          {/* Colored border for desktop */}
-                          <div className={`absolute left-0 top-0 bottom-0 w-2 ${borderColor}`}></div>
                           <div className="flex items-center justify-between gap-6">
                             {/* Left Section - Client Info */}
                             <div className="flex-1 min-w-0">
@@ -861,22 +765,22 @@ function AdminDashboardContent() {
                               </p>
                               <div className="text-sm text-gray-600 space-y-2">
                                 <div>
-                              <span className="font-medium">Barber:</span> {appointment.barber.name}
-                            </div>
+                                  <span className="font-medium">Barber:</span> {appointment.barber.name}
+                                </div>
                                 <div>
-                              <span className="font-medium">Services:</span>
+                                  <span className="font-medium">Services:</span>
                                   <ul className="list-disc list-inside ml-4 mt-1">
-                                {appointment.services.map((service) => (
+                                    {appointment.services.map((service) => (
                                       <li key={service.id} className="truncate">
-                                    {service.name} - €{service.price} ({service.duration_minutes} min)
-                                  </li>
-                                ))}
-                              </ul>
+                                        {service.name} - €{service.price} ({service.duration_minutes} min)
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
                                 <div className="font-medium">
-                                Total: €{appointment.services.reduce((sum, s) => sum + s.price, 0).toFixed(2)} 
-                                ({appointment.services.reduce((sum, s) => sum + s.duration_minutes, 0)} min)
-                              </div>
+                                  Total: €{appointment.services.reduce((sum, s) => sum + s.price, 0).toFixed(2)} 
+                                  ({appointment.services.reduce((sum, s) => sum + s.duration_minutes, 0)} min)
+                                </div>
                               </div>
                               {appointment.notes && (
                                 <div className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200">
@@ -897,17 +801,6 @@ function AdminDashboardContent() {
                             
                             {/* Right - Action Buttons */}
                             <div className="flex gap-3 flex-shrink-0">
-                              {appointment.status === 'pending' && (
-                                <button
-                                  onClick={() => updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name)}
-                                  className="w-14 h-14 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all hover:scale-110 hover:shadow-xl"
-                                  title="Confirm appointment"
-                                >
-                                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </button>
-                              )}
                               {appointment.status !== 'cancelled' && (
                                 <button
                                   onClick={() => updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name)}
@@ -1031,7 +924,6 @@ function AdminDashboardContent() {
                           >
                             <option value="all">All Statuses</option>
                             <option value="confirmed">Confirmed</option>
-                            <option value="pending">Pending</option>
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </div>
@@ -1086,10 +978,6 @@ function AdminDashboardContent() {
                     <div className="text-2xl font-bold text-green-600">{historyStats.confirmed}</div>
                   </div>
                   <div className="bg-white rounded-lg shadow p-4">
-                    <div className="text-sm text-gray-600 mb-1">Pending</div>
-                    <div className="text-2xl font-bold text-yellow-600">{historyStats.pending}</div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4">
                     <div className="text-sm text-gray-600 mb-1">Cancelled</div>
                     <div className="text-2xl font-bold text-red-600">{historyStats.cancelled}</div>
                   </div>
@@ -1114,153 +1002,32 @@ function AdminDashboardContent() {
                         hour12: true
                       });
                       
-                      // Status colors for left border
-                      const borderColor = 
-                        appointment.status === 'confirmed' ? 'border-l-green-500' :
-                        appointment.status === 'cancelled' ? 'border-l-red-500' :
-                        'border-l-yellow-500';
-                      
-                      // Swipe gesture component for mobile (history tab)
-                      const SwipeableHistoryCard = () => {
-                        const [touchStart, setTouchStart] = useState<number | null>(null);
-                        const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
-                        const [isSwiping, setIsSwiping] = useState(false);
-                        const [didSwipe, setDidSwipe] = useState(false);
-                        const touchElementRef = useRef<HTMLDivElement>(null);
-                        
-                        const swipeThreshold = 100; // pixels needed to trigger action
-                        
-                        // Only allow swiping for pending appointments that are upcoming (not past)
-                        const canSwipe = !isPast && appointment.status === 'pending';
-                        
-                        const handleTouchStart = (e: TouchEvent) => {
-                          if (!canSwipe) return;
-                          setTouchStart(e.touches[0].clientX);
-                          setTouchCurrent(e.touches[0].clientX);
-                          setIsSwiping(true);
-                          setDidSwipe(false);
-                        };
-                        
-                        const handleTouchMove = (e: TouchEvent) => {
-                          if (!touchStart || !canSwipe) return;
-                          const currentX = e.touches[0].clientX;
-                          setTouchCurrent(currentX);
-                          // Prevent scrolling while swiping horizontally
-                          if (Math.abs(currentX - touchStart) > 10) {
-                            e.preventDefault();
-                            setDidSwipe(true);
-                          }
-                        };
-                        
-                        const handleTouchEnd = () => {
-                          if (!touchStart || !touchCurrent || !canSwipe) {
-                            setIsSwiping(false);
-                            setTouchStart(null);
-                            setTouchCurrent(null);
-                            return;
-                          }
-                          
-                          const diff = touchCurrent - touchStart;
-                          
-                          // Right swipe - Confirm
-                          if (diff > swipeThreshold) {
-                            updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name);
-                          }
-                          // Left swipe - Cancel
-                          else if (diff < -swipeThreshold) {
-                            updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name);
-                          }
-                          
-                          setIsSwiping(false);
-                          setTouchStart(null);
-                          setTouchCurrent(null);
-                          // Reset didSwipe after a short delay to allow onClick to check it
-                          setTimeout(() => setDidSwipe(false), 100);
-                        };
-
-                        // Attach touch event listeners with passive: false
-                        useEffect(() => {
-                          const element = touchElementRef.current;
-                          if (!element) return;
-
-                          element.addEventListener('touchstart', handleTouchStart, { passive: true });
-                          element.addEventListener('touchmove', handleTouchMove, { passive: false });
-                          element.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-                          return () => {
-                            element.removeEventListener('touchstart', handleTouchStart);
-                            element.removeEventListener('touchmove', handleTouchMove);
-                            element.removeEventListener('touchend', handleTouchEnd);
-                          };
-                        }, [touchStart, touchCurrent, canSwipe]);
-                        
-                        const swipeOffset = isSwiping && touchStart && touchCurrent ? touchCurrent - touchStart : 0;
-                        const clampedOffset = Math.max(-200, Math.min(200, swipeOffset));
-                        
-                        // Show action hints
-                        const showConfirmHint = swipeOffset > 30 && canSwipe;
-                        const showCancelHint = swipeOffset < -30 && canSwipe;
-                        
-                        return (
-                          <div className="relative overflow-hidden">
-                            {/* Background action indicators - Full width colored backgrounds */}
-                            {/* Confirm background (green, left side for right swipe) */}
-                            <div className={`absolute inset-y-0 left-0 right-0 bg-green-500 flex items-center justify-start px-8 transition-opacity duration-200 ${showConfirmHint ? 'opacity-100' : 'opacity-0'}`}>
-                              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                            
-                            {/* Cancel background (red, right side for left swipe) */}
-                            <div className={`absolute inset-y-0 left-0 right-0 bg-red-500 flex items-center justify-end px-8 transition-opacity duration-200 ${showCancelHint ? 'opacity-100' : 'opacity-0'}`}>
-                              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </div>
-                            
-                            {/* Swipeable content with border */}
-                            <div
-                              ref={touchElementRef}
-                              style={{
-                                transform: `translateX(${clampedOffset}px)`,
-                                transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                              }}
-                              onClick={() => !didSwipe && setSelectedAppointmentDetails(appointment)}
-                              className={`bg-white relative z-10 cursor-pointer border-l-8 ${borderColor}`}
-                            >
-                              <div className="px-4 py-4">
-                                <div className="flex items-start justify-between gap-3">
-                                  {/* Left Side - Name */}
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1 break-words">
-                                      {appointment.client_name}
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                      {new Date(appointment.appointment_datetime).toLocaleDateString('en-US', { 
-                                        month: 'short', 
-                                        day: 'numeric', 
-                                        year: 'numeric' 
-                                      })} at {timeString}
-                                    </p>
-                                  </div>
-                                </div>
+                      return (
+                        <li key={appointment.id} className="bg-white overflow-hidden mb-3 relative hover:bg-gray-50 transition-colors">
+                          {/* Mobile View */}
+                          <div 
+                            className="lg:hidden px-4 py-4 cursor-pointer"
+                            onClick={() => setSelectedAppointmentDetails(appointment)}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              {/* Left Side - Name */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-bold text-gray-900 mb-1 break-words">
+                                  {appointment.client_name}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {new Date(appointment.appointment_datetime).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric' 
+                                  })} at {timeString}
+                                </p>
                               </div>
                             </div>
-                          </div>
-                        );
-                      };
-                      
-                      return (
-                        <li key={appointment.id} className="bg-white rounded-xl shadow-md overflow-hidden mb-3 relative">
-                          {/* Mobile View with Swipe */}
-                          <div className="lg:hidden">
-                            <SwipeableHistoryCard />
                           </div>
 
                           {/* Desktop View */}
                           <div className="hidden lg:block px-6 py-4 relative">
-                            {/* Colored border for desktop */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-2 ${borderColor}`}></div>
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
@@ -1285,9 +1052,9 @@ function AdminDashboardContent() {
                                   <div className="mb-2 flex items-center space-x-4">
                                     <div>
                                       <span className="font-medium">Barber:</span> {appointment.barber.name}
-                            </div>
-                            <div>
-                              <span className="font-medium">Date:</span> {new Date(appointment.appointment_datetime).toLocaleString()}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Date:</span> {new Date(appointment.appointment_datetime).toLocaleString()}
                                     </div>
                                   </div>
                                   <div className="mb-2">
@@ -1299,37 +1066,27 @@ function AdminDashboardContent() {
                                         </span>
                                       ))}
                                     </div>
+                                  </div>
+                                </div>
+                                {appointment.notes && (
+                                  <div className="mt-2 text-sm text-gray-600 bg-gray-100 rounded p-2">
+                                    <span className="font-medium">Notes:</span> {appointment.notes}
+                                  </div>
+                                )}
+                              </div>
+                              {!isPast && appointment.status !== 'cancelled' && (
+                                <div className="ml-4 flex space-x-2">
+                                  <button
+                                    onClick={() => updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name)}
+                                    className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          {appointment.notes && (
-                                  <div className="mt-2 text-sm text-gray-600 bg-gray-100 rounded p-2">
-                              <span className="font-medium">Notes:</span> {appointment.notes}
-                            </div>
-                          )}
-                        </div>
-                              {!isPast && (
-                      <div className="ml-4 flex space-x-2">
-                        {appointment.status === 'pending' && (
-                          <button
-                                      onClick={() => updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name)}
-                            className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200"
-                          >
-                            Confirm
-                          </button>
-                        )}
-                        {appointment.status !== 'cancelled' && (
-                          <button
-                                      onClick={() => updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name)}
-                            className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
-                          >
-                            Cancel
-                          </button>
-                                  )}
-                                </div>
-                        )}
-                      </div>
-                    </div>
-                  </li>
+                        </li>
                       );
                     })}
                     {filteredHistory.length === 0 && (
@@ -1341,8 +1098,8 @@ function AdminDashboardContent() {
                           <p className="text-gray-500 text-lg font-medium">No appointments found</p>
                           <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
                         </div>
-                  </li>
-                )}
+                      </li>
+                    )}
               </ul>
                 </div>
               </div>
@@ -1385,7 +1142,7 @@ function AdminDashboardContent() {
                     </svg>
                   </div>
                 </div>
-                <p className="text-blue-100 text-xs mt-2">{analytics.confirmedAppointments} confirmed, {analytics.pendingAppointments} pending</p>
+                <p className="text-blue-100 text-xs mt-2">{analytics.confirmedAppointments} confirmed</p>
               </div>
 
               {/* Average Order Value */}
@@ -1543,7 +1300,7 @@ function AdminDashboardContent() {
             {/* Appointment Status Distribution */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-6">Appointment Status Distribution</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="text-center">
                   <div className="relative inline-flex items-center justify-center w-32 h-32">
                     <svg className="w-32 h-32 transform -rotate-90">
@@ -1568,35 +1325,6 @@ function AdminDashboardContent() {
                     <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                       {analytics.totalAppointments > 0 
                         ? ((analytics.confirmedAppointments / analytics.totalAppointments) * 100).toFixed(0)
-                        : 0}%
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32">
-                    <svg className="w-32 h-32 transform -rotate-90">
-                      <circle cx="64" cy="64" r="56" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                      <circle 
-                        cx="64" 
-                        cy="64" 
-                        r="56" 
-                        fill="none" 
-                        stroke="#f59e0b" 
-                        strokeWidth="12"
-                        strokeDasharray={`${analytics.totalAppointments > 0 ? (analytics.pendingAppointments / analytics.totalAppointments) * 351.86 : 0} 351.86`}
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center flex-col">
-                      <span className="text-2xl font-bold text-gray-900">{analytics.pendingAppointments}</span>
-                      <span className="text-xs text-gray-500">Pending</span>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                      {analytics.totalAppointments > 0 
-                        ? ((analytics.pendingAppointments / analytics.totalAppointments) * 100).toFixed(0)
                         : 0}%
                     </span>
                   </div>
@@ -1696,6 +1424,235 @@ function AdminDashboardContent() {
                   </li>
                 )}
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Admin Settings
+                </h3>
+                
+                {/* Account Settings Section */}
+                <div className="mb-8">
+                  <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Account Settings
+                  </h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Admin Username
+                      </label>
+                      <input
+                        type="text"
+                        value="admin"
+                        disabled
+                        className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                      />
+                      <p className="mt-1 text-sm text-gray-500">Username cannot be changed</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Change Password
+                      </label>
+                      <button className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <span>Change Password</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Settings Section */}
+                <div className="mb-8">
+                  <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Business Information
+                  </h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Name
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="Barbershop"
+                        className="w-full sm:max-w-md px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Phone
+                      </label>
+                      <input
+                        type="tel"
+                        placeholder="+383 XX XXX XXX"
+                        className="w-full sm:max-w-md px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Address
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Enter your business address"
+                        className="w-full sm:max-w-md px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Booking Settings Section */}
+                <div className="mb-8">
+                  <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Booking Settings
+                  </h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Maximum Advance Booking (days)
+                      </label>
+                      <input
+                        type="number"
+                        defaultValue="30"
+                        min="1"
+                        max="365"
+                        className="w-full sm:max-w-xs px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                      <p className="mt-1 text-sm text-gray-500">How far in advance customers can book</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Time Slot Duration (minutes)
+                      </label>
+                      <select defaultValue="30" className="w-full sm:max-w-xs px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">60 minutes</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Allow same-day bookings</span>
+                      </label>
+                    </div>
+                    <div>
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Send email confirmations</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Working Hours Section */}
+                <div className="mb-8">
+                  <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Business Hours
+                  </h4>
+                  <div className="space-y-3">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                      <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <div className="w-28 font-medium text-gray-700">{day}</div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            defaultValue={day === 'Sunday' ? '' : '09:00'}
+                            className="px-3 py-1.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                          />
+                          <span className="text-gray-500">to</span>
+                          <input
+                            type="time"
+                            defaultValue={day === 'Sunday' ? '' : '18:00'}
+                            className="px-3 py-1.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                          />
+                        </div>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            defaultChecked={day === 'Sunday'}
+                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          />
+                          <span className="text-sm text-gray-600">Closed</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="pt-5 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                    <button
+                      type="button"
+                      className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => showSuccess('Settings saved successfully!')}
+                      className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg font-medium flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Save Settings</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Logout Section */}
+                <div className="pt-8 mt-8 border-t-2 border-red-200">
+                  <div className="bg-red-50 rounded-lg p-6">
+                    <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Account Access
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Sign out of your admin account. You&apos;ll need to log in again to access the dashboard.
+                    </p>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg font-semibold"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

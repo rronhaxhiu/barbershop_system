@@ -68,8 +68,8 @@ class Appointment(Base):
     
     # Appointment details
     appointment_datetime = Column(DateTime, nullable=False)
-    status = Column(String(20), default="pending")  # pending, confirmed, cancelled
-    confirmation_token = Column(String(100), unique=True, nullable=False)
+    status = Column(String(20), default="confirmed")  # confirmed, cancelled
+    cancellation_token = Column(String(100), unique=True, nullable=False)
     notes = Column(Text, nullable=True)
     
     # Timestamps
@@ -81,6 +81,6 @@ class Appointment(Base):
     barber = relationship("Barber", back_populates="appointments")
     services = relationship("Service", secondary=appointment_services, back_populates="appointments")
     
-    def generate_confirmation_token(self):
-        """Generate a unique confirmation token"""
-        self.confirmation_token = str(uuid.uuid4())
+    def generate_cancellation_token(self):
+        """Generate a unique cancellation token"""
+        self.cancellation_token = str(uuid.uuid4())

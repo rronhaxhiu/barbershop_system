@@ -84,8 +84,8 @@ def delete_service(db: Session, service_id: int) -> bool:
 def get_appointment(db: Session, appointment_id: int) -> Optional[Appointment]:
     return db.query(Appointment).filter(Appointment.id == appointment_id).first()
 
-def get_appointment_by_token(db: Session, token: str) -> Optional[Appointment]:
-    return db.query(Appointment).filter(Appointment.confirmation_token == token).first()
+def get_appointment_by_cancellation_token(db: Session, token: str) -> Optional[Appointment]:
+    return db.query(Appointment).filter(Appointment.cancellation_token == token).first()
 
 def get_appointments(db: Session, skip: int = 0, limit: int = 100, status: Optional[str] = None) -> List[Appointment]:
     query = db.query(Appointment)
@@ -97,7 +97,9 @@ def create_appointment(db: Session, appointment: AppointmentCreate) -> Appointme
     # Extract service_ids and create appointment without them
     appointment_data = appointment.dict(exclude={'service_ids'})
     db_appointment = Appointment(**appointment_data)
-    db_appointment.confirmation_token = str(uuid.uuid4())
+    db_appointment.cancellation_token = str(uuid.uuid4())
+    db_appointment.status = "confirmed"  # Automatically confirm
+    db_appointment.confirmed_at = datetime.utcnow()
     
     # Add services to the appointment
     for service_id in appointment.service_ids:
@@ -122,14 +124,19 @@ def update_appointment(db: Session, appointment_id: int, appointment_update: App
         db.refresh(db_appointment)
     return db_appointment
 
-def confirm_appointment(db: Session, token: str) -> Optional[Appointment]:
-    db_appointment = get_appointment_by_token(db, token)
-    if db_appointment and db_appointment.status == "pending":
-        db_appointment.status = "confirmed"
-        db_appointment.confirmed_at = datetime.utcnow()
-        db.commit()
-        db.refresh(db_appointment)
-    return db_appointment
+def cancel_appointment(db: Session, token: str) -> Optional[Appointment]:
+    """Cancel an appointment if it's at least 2 hours away"""
+    db_appointment = get_appointment_by_cancellation_token(db, token)
+    if db_appointment and db_appointment.status == "confirmed":
+        # Check if appointment is at least 2 hours away
+        now = datetime.utcnow()
+        time_until_appointment = db_appointment.appointment_datetime - now
+        if time_until_appointment.total_seconds() >= 7200:  # 2 hours = 7200 seconds
+            db_appointment.status = "cancelled"
+            db.commit()
+            db.refresh(db_appointment)
+            return db_appointment
+    return None
 
 def check_appointment_conflict(db: Session, barber_id: int, appointment_datetime: datetime, duration_minutes: int, exclude_id: Optional[int] = None) -> bool:
     """Check if there's a conflicting appointment for the barber at the given time"""
@@ -139,7 +146,7 @@ def check_appointment_conflict(db: Session, barber_id: int, appointment_datetime
     # Get all appointments for this barber that might conflict
     existing_appointments = db.query(Appointment).filter(
         Appointment.barber_id == barber_id,
-        Appointment.status.in_(["pending", "confirmed"])
+        Appointment.status == "confirmed"
     ).all()
 
     if exclude_id:

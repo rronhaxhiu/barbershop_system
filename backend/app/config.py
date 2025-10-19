@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class Settings:
     # Database
@@ -13,8 +17,8 @@ class Settings:
 
     # Application
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production-minimum-32-characters")
-    frontend_url: str = os.getenv("FRONTEND_URL", "http://192.168.3.253:3000")
-    backend_url: str = os.getenv("BACKEND_URL", "http://192.168.3.253:8000")
+    frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    backend_url: str = os.getenv("BACKEND_URL", "http://localhost:8000")
     
     # JWT Settings
     jwt_algorithm: str = "HS256"

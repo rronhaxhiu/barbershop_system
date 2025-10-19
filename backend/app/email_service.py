@@ -48,30 +48,39 @@ class EmailService:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
 
-    def send_appointment_confirmation(self, appointment_data: dict) -> bool:
-        """Send appointment confirmation email"""
-        confirmation_url = f"{settings.frontend_url}/confirm/{appointment_data['confirmation_token']}"
+    def send_booking_confirmation(self, appointment_data: dict) -> bool:
+        """Send booking confirmation email with cancellation link"""
+        cancellation_url = f"{settings.frontend_url}/cancel/{appointment_data['cancellation_token']}"
         
         html_template = Template("""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Appointment Confirmation</title>
+            <title>Appointment Confirmed</title>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
                 .content { padding: 20px; background-color: #f9f9f9; }
                 .appointment-details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
-                .confirm-button { 
+                .cancel-button { 
                     display: inline-block; 
-                    background-color: #3498db; 
+                    background-color: #e74c3c; 
                     color: white; 
                     padding: 12px 24px; 
                     text-decoration: none; 
                     border-radius: 5px; 
                     margin: 20px 0; 
+                }
+                .success-badge {
+                    display: inline-block;
+                    background-color: #27ae60;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
                 }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
             </style>
@@ -82,8 +91,11 @@ class EmailService:
                     <h1>💈 Barbershop Appointment</h1>
                 </div>
                 <div class="content">
+                    <div style="text-align: center;">
+                        <span class="success-badge">✓ CONFIRMED</span>
+                    </div>
                     <h2>Hello {{ client_name }}!</h2>
-                    <p>Thank you for booking an appointment with us. Please confirm your appointment by clicking the button below:</p>
+                    <p>Your appointment has been confirmed! We look forward to seeing you.</p>
                     
                     <div class="appointment-details">
                         <h3>Appointment Details:</h3>
@@ -97,17 +109,17 @@ class EmailService:
                         {% endif %}
                     </div>
                     
+                    <p><strong>Need to cancel?</strong> You can cancel your appointment up to 2 hours before the scheduled time.</p>
+                    
                     <div style="text-align: center;">
-                        <a href="{{ confirmation_url }}" class="confirm-button">Confirm Appointment</a>
+                        <a href="{{ cancellation_url }}" class="cancel-button">Cancel Appointment</a>
                     </div>
                     
-                    <p><strong>Important:</strong> Your appointment is not confirmed until you click the confirmation link above.</p>
-                    
-                    <p>If you cannot click the button, copy and paste this link into your browser:</p>
-                    <p>{{ confirmation_url }}</p>
+                    <p style="font-size: 12px; color: #666;">If you cannot click the button, copy and paste this link into your browser:</p>
+                    <p style="font-size: 12px; color: #666; word-break: break-all;">{{ cancellation_url }}</p>
                 </div>
                 <div class="footer">
-                    <p>If you didn't book this appointment, please ignore this email.</p>
+                    <p>If you didn't book this appointment, please contact us immediately.</p>
                     <p>© 2024 Barbershop Appointment System</p>
                 </div>
             </div>
@@ -116,12 +128,11 @@ class EmailService:
         """)
 
         text_template = Template("""
-        Barbershop Appointment Confirmation
+        Barbershop Appointment Confirmed
         
         Hello {{ client_name }}!
         
-        Thank you for booking an appointment with us. Please confirm your appointment by visiting:
-        {{ confirmation_url }}
+        Your appointment has been confirmed! We look forward to seeing you.
         
         Appointment Details:
         - Barber: {{ barber_name }}
@@ -131,9 +142,10 @@ class EmailService:
         - Price: ${{ price }}
         {% if notes %}- Notes: {{ notes }}{% endif %}
         
-        Important: Your appointment is not confirmed until you click the confirmation link above.
+        Need to cancel? You can cancel your appointment up to 2 hours before the scheduled time by visiting:
+        {{ cancellation_url }}
         
-        If you didn't book this appointment, please ignore this email.
+        If you didn't book this appointment, please contact us immediately.
         """)
 
         html_content = html_template.render(**appointment_data)
@@ -141,7 +153,85 @@ class EmailService:
 
         return self.send_email(
             to_email=appointment_data['client_email'],
-            subject="Confirm Your Barbershop Appointment",
+            subject="Your Barbershop Appointment is Confirmed!",
+            html_content=html_content,
+            text_content=text_content
+        )
+    
+    def send_cancellation_confirmation(self, appointment_data: dict) -> bool:
+        """Send email confirming appointment cancellation"""
+        html_template = Template("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Appointment Cancelled</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background-color: #f9f9f9; }
+                .appointment-details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
+                .cancelled-badge {
+                    display: inline-block;
+                    background-color: #e74c3c;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>💈 Barbershop Appointment</h1>
+                </div>
+                <div class="content">
+                    <div style="text-align: center;">
+                        <span class="cancelled-badge">✗ CANCELLED</span>
+                    </div>
+                    <h2>Hello {{ client_name }}!</h2>
+                    <p>Your appointment has been successfully cancelled.</p>
+                    
+                    <div class="appointment-details">
+                        <h3>Cancelled Appointment:</h3>
+                        <p><strong>Barber:</strong> {{ barber_name }}</p>
+                        <p><strong>Date & Time:</strong> {{ appointment_datetime }}</p>
+                    </div>
+                    
+                    <p>We hope to see you again soon! You can book a new appointment anytime on our website.</p>
+                </div>
+                <div class="footer">
+                    <p>© 2024 Barbershop Appointment System</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """)
+
+        text_template = Template("""
+        Barbershop Appointment Cancelled
+        
+        Hello {{ client_name }}!
+        
+        Your appointment has been successfully cancelled.
+        
+        Cancelled Appointment:
+        - Barber: {{ barber_name }}
+        - Date & Time: {{ appointment_datetime }}
+        
+        We hope to see you again soon! You can book a new appointment anytime on our website.
+        """)
+
+        html_content = html_template.render(**appointment_data)
+        text_content = text_template.render(**appointment_data)
+
+        return self.send_email(
+            to_email=appointment_data['client_email'],
+            subject="Appointment Cancelled",
             html_content=html_content,
             text_content=text_content
         )

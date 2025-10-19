@@ -72,7 +72,7 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
     # Create appointment
     db_appointment = crud.create_appointment(db, appointment)
     
-    # Send confirmation email
+    # Send booking confirmation email
     try:
         service_names = ", ".join([s.name for s in services])
         appointment_data = {
@@ -84,24 +84,61 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
             'duration_minutes': total_duration,
             'price': total_price,
             'notes': db_appointment.notes or '',
-            'confirmation_token': db_appointment.confirmation_token,
-            'confirmation_url': f"http://192.168.3.253:3000/confirm/{db_appointment.confirmation_token}"
+            'cancellation_token': db_appointment.cancellation_token,
+            'cancellation_url': f"http://localhost:3000/cancel/{db_appointment.cancellation_token}",
+            'appointment_id': db_appointment.id
         }
-        email_service.send_appointment_confirmation(appointment_data)
+        email_service.send_booking_confirmation(appointment_data)
     except Exception as e:
         # Log error but don't fail the appointment creation
-        print(f"Failed to send confirmation email: {e}")
+        print(f"Failed to send booking confirmation email: {e}")
     
     return db_appointment
 
-@router.get("/appointments/confirm/{token}")
-def confirm_appointment(token: str, db: Session = Depends(get_db)):
-    """Confirm an appointment using the confirmation token"""
-    appointment = crud.confirm_appointment(db, token)
+@router.post("/appointments/cancel/{token}")
+def cancel_appointment(token: str, db: Session = Depends(get_db)):
+    """Cancel an appointment using the cancellation token"""
+    appointment = crud.cancel_appointment(db, token)
     if not appointment:
-        raise HTTPException(status_code=404, detail="Invalid confirmation token or appointment already confirmed")
+        raise HTTPException(
+            status_code=400, 
+            detail="Unable to cancel appointment. It may be already cancelled, doesn't exist, or is less than 2 hours away."
+        )
     
-    return {"message": "Appointment confirmed successfully", "appointment_id": appointment.id}
+    # Send cancellation confirmation email
+    try:
+        appointment_data = {
+            'client_name': appointment.client_name,
+            'client_email': appointment.client_email,
+            'barber_name': appointment.barber.name,
+            'appointment_datetime': appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M'),
+        }
+        email_service.send_cancellation_confirmation(appointment_data)
+    except Exception as e:
+        print(f"Failed to send cancellation confirmation email: {e}")
+    
+    return {"message": "Appointment cancelled successfully", "appointment_id": appointment.id}
+
+@router.get("/appointments/check/{token}")
+def check_appointment(token: str, db: Session = Depends(get_db)):
+    """Check an appointment status using the cancellation token"""
+    appointment = crud.get_appointment_by_cancellation_token(db, token)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Check if appointment can be cancelled (at least 2 hours away)
+    now = datetime.utcnow()
+    time_until_appointment = appointment.appointment_datetime - now
+    can_cancel = time_until_appointment.total_seconds() >= 7200
+    
+    return {
+        "appointment_id": appointment.id,
+        "client_name": appointment.client_name,
+        "appointment_datetime": appointment.appointment_datetime.isoformat(),
+        "status": appointment.status,
+        "can_cancel": can_cancel and appointment.status == "confirmed",
+        "barber_name": appointment.barber.name
+    }
 
 @router.get("/barbers/{barber_id}/available-slots")
 def get_available_slots(
