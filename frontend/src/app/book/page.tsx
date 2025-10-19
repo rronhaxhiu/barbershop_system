@@ -444,15 +444,13 @@ export default function BookingPage() {
                   <label className="block text-lg font-medium text-gray-900 mb-3 text-center">
                     Select a Date
                   </label>
-                  <div className="max-w-md mx-auto">
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => handleDateChange(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-lg"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full min-w-0 px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-base sm:text-lg"
+                  />
                 </div>
 
                 {/* Time Slots */}

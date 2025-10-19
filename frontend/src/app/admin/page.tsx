@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -61,6 +61,74 @@ function AdminDashboardContent() {
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
+  const [isModalAnimating, setIsModalAnimating] = useState(false);
+
+  // Trigger animation when modal opens
+  useEffect(() => {
+    if (selectedAppointmentDetails) {
+      setTimeout(() => setIsModalAnimating(true), 10);
+    } else {
+      setIsModalAnimating(false);
+    }
+  }, [selectedAppointmentDetails]);
+
+  const closeModal = () => {
+    setIsModalAnimating(false);
+    setTimeout(() => setSelectedAppointmentDetails(null), 300);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard) {
+        // Fallback method for browsers without Clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        // Prevent viewport changes and keyboard on mobile
+        textArea.style.position = 'fixed';
+        textArea.style.top = '0';
+        textArea.style.left = '0';
+        textArea.style.width = '2em';
+        textArea.style.height = '2em';
+        textArea.style.padding = '0';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.boxShadow = 'none';
+        textArea.style.background = 'transparent';
+        textArea.style.opacity = '0';
+        textArea.style.pointerEvents = 'none';
+        textArea.setAttribute('readonly', '');
+        document.body.appendChild(textArea);
+        
+        // Save current scroll position
+        const scrollY = window.scrollY;
+        const scrollX = window.scrollX;
+        
+        textArea.select();
+        textArea.setSelectionRange(0, 99999); // For mobile devices
+        
+        try {
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          // Restore scroll position
+          window.scrollTo(scrollX, scrollY);
+          
+          showSuccess('Copied to clipboard!');
+        } catch {
+          document.body.removeChild(textArea);
+          window.scrollTo(scrollX, scrollY);
+          showError('Failed to copy');
+        }
+        return;
+      }
+      
+      await navigator.clipboard.writeText(text);
+      showSuccess('Copied to clipboard!');
+    } catch {
+      showError('Failed to copy');
+    }
+  };
 
   const handleLogout = () => {
     authUtils.logout();
@@ -209,7 +277,7 @@ function AdminDashboardContent() {
           const bTotal = b.services.reduce((sum, s) => sum + s.price, 0);
           return aTotal - bTotal;
         }
-        default:
+      default:
           return 0;
       }
     });
@@ -618,7 +686,7 @@ function AdminDashboardContent() {
 
             {/* Upcoming Appointments */}
             {appointmentsView === 'upcoming' && (
-              <div>
+                            <div>
                 <div className="space-y-4">
                   {filterAppointmentsByDate(getUpcomingAppointments(), selectedDate)
                     .sort((a, b) => new Date(a.appointment_datetime).getTime() - new Date(b.appointment_datetime).getTime())
@@ -641,22 +709,31 @@ function AdminDashboardContent() {
                       const [touchStart, setTouchStart] = useState<number | null>(null);
                       const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
                       const [isSwiping, setIsSwiping] = useState(false);
+                      const [didSwipe, setDidSwipe] = useState(false);
+                      const touchElementRef = useRef<HTMLDivElement>(null);
                       
                       const swipeThreshold = 100; // pixels needed to trigger action
                       
                       // Disable swiping for confirmed or cancelled appointments
                       const canSwipe = appointment.status === 'pending';
                       
-                      const handleTouchStart = (e: React.TouchEvent) => {
-                        if (!canSwipe) return; // Don't allow swiping if confirmed/cancelled
+                      const handleTouchStart = (e: TouchEvent) => {
+                        if (!canSwipe) return;
                         setTouchStart(e.touches[0].clientX);
                         setTouchCurrent(e.touches[0].clientX);
                         setIsSwiping(true);
+                        setDidSwipe(false);
                       };
                       
-                      const handleTouchMove = (e: React.TouchEvent) => {
+                      const handleTouchMove = (e: TouchEvent) => {
                         if (!touchStart || !canSwipe) return;
-                        setTouchCurrent(e.touches[0].clientX);
+                        const currentX = e.touches[0].clientX;
+                        setTouchCurrent(currentX);
+                        // Prevent scrolling while swiping horizontally
+                        if (Math.abs(currentX - touchStart) > 10) {
+                          e.preventDefault();
+                          setDidSwipe(true);
+                        }
                       };
                       
                       const handleTouchEnd = () => {
@@ -681,7 +758,25 @@ function AdminDashboardContent() {
                         setIsSwiping(false);
                         setTouchStart(null);
                         setTouchCurrent(null);
+                        // Reset didSwipe after a short delay to allow onClick to check it
+                        setTimeout(() => setDidSwipe(false), 100);
                       };
+
+                      // Attach touch event listeners with passive: false
+                      useEffect(() => {
+                        const element = touchElementRef.current;
+                        if (!element) return;
+
+                        element.addEventListener('touchstart', handleTouchStart, { passive: true });
+                        element.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        element.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+                        return () => {
+                          element.removeEventListener('touchstart', handleTouchStart);
+                          element.removeEventListener('touchmove', handleTouchMove);
+                          element.removeEventListener('touchend', handleTouchEnd);
+                        };
+                      }, [touchStart, touchCurrent, canSwipe]);
                       
                       const swipeOffset = isSwiping && touchStart && touchCurrent ? touchCurrent - touchStart : 0;
                       const clampedOffset = Math.max(-200, Math.min(200, swipeOffset));
@@ -707,42 +802,31 @@ function AdminDashboardContent() {
                             </svg>
                           </div>
                           
-                          {/* Swipeable content */}
+                          {/* Swipeable content with border */}
                           <div
+                            ref={touchElementRef}
                             style={{
                               transform: `translateX(${clampedOffset}px)`,
                               transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
-                            onTouchEnd={handleTouchEnd}
-                            className="bg-white relative z-10"
+                            onClick={() => !didSwipe && setSelectedAppointmentDetails(appointment)}
+                            className={`bg-white relative z-10 cursor-pointer border-l-8 ${borderColor}`}
                           >
                             <div className="px-4 py-4 relative">
-                            {/* Content Layout - Left: Name & Button, Right: Time */}
+                            {/* Content Layout - Left: Name, Right: Time */}
                             <div className="flex items-center justify-between gap-4">
-                              {/* Left Side - Name & View Details */}
+                              {/* Left Side - Name */}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-xl font-bold text-gray-900 mb-3 break-words">
-                                  {appointment.client_name}
-                                </h3>
-                                <button
-                                  onClick={() => setSelectedAppointmentDetails(appointment)}
-                                  className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                  <span>View Details</span>
-                                </button>
-                              </div>
+                                <h3 className="text-xl font-bold text-gray-900 break-words">
+                                {appointment.client_name}
+                              </h3>
+                            </div>
                               
                               {/* Right Side - Time (No Icon, Vertically Centered) */}
                               <div className="flex items-center justify-end flex-shrink-0">
                                 <div className="text-4xl  text-gray-900 whitespace-nowrap">
                                   {timeString}
-                                </div>
+                          </div>
                               </div>
                             </div>
                           </div>
@@ -755,7 +839,7 @@ function AdminDashboardContent() {
                       <div 
                         key={appointment.id}
                         id={`appointment-${appointment.id}`}
-                        className={`bg-white rounded-xl shadow-md hover:shadow-xl border-l-8 ${borderColor} transition-all duration-200 overflow-hidden`}
+                        className="bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden relative transition-all duration-200"
                       >
                         {/* Mobile View with Swipe */}
                         <div className="lg:hidden">
@@ -763,7 +847,9 @@ function AdminDashboardContent() {
                         </div>
 
                         {/* Desktop View */}
-                        <div className="hidden lg:block px-6 py-5">
+                        <div className="hidden lg:block px-6 py-5 relative">
+                          {/* Colored border for desktop */}
+                          <div className={`absolute left-0 top-0 bottom-0 w-2 ${borderColor}`}></div>
                           <div className="flex items-center justify-between gap-6">
                             {/* Left Section - Client Info */}
                             <div className="flex-1 min-w-0">
@@ -775,22 +861,22 @@ function AdminDashboardContent() {
                               </p>
                               <div className="text-sm text-gray-600 space-y-2">
                                 <div>
-                                  <span className="font-medium">Barber:</span> {appointment.barber.name}
-                                </div>
+                              <span className="font-medium">Barber:</span> {appointment.barber.name}
+                            </div>
                                 <div>
-                                  <span className="font-medium">Services:</span>
+                              <span className="font-medium">Services:</span>
                                   <ul className="list-disc list-inside ml-4 mt-1">
-                                    {appointment.services.map((service) => (
+                                {appointment.services.map((service) => (
                                       <li key={service.id} className="truncate">
-                                        {service.name} - €{service.price} ({service.duration_minutes} min)
-                                      </li>
-                                    ))}
-                                  </ul>
+                                    {service.name} - €{service.price} ({service.duration_minutes} min)
+                                  </li>
+                                ))}
+                              </ul>
                                 </div>
                                 <div className="font-medium">
-                                  Total: €{appointment.services.reduce((sum, s) => sum + s.price, 0).toFixed(2)} 
-                                  ({appointment.services.reduce((sum, s) => sum + s.duration_minutes, 0)} min)
-                                </div>
+                                Total: €{appointment.services.reduce((sum, s) => sum + s.price, 0).toFixed(2)} 
+                                ({appointment.services.reduce((sum, s) => sum + s.duration_minutes, 0)} min)
+                              </div>
                               </div>
                               {appointment.notes && (
                                 <div className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200">
@@ -1039,22 +1125,31 @@ function AdminDashboardContent() {
                         const [touchStart, setTouchStart] = useState<number | null>(null);
                         const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
                         const [isSwiping, setIsSwiping] = useState(false);
+                        const [didSwipe, setDidSwipe] = useState(false);
+                        const touchElementRef = useRef<HTMLDivElement>(null);
                         
                         const swipeThreshold = 100; // pixels needed to trigger action
                         
                         // Only allow swiping for pending appointments that are upcoming (not past)
                         const canSwipe = !isPast && appointment.status === 'pending';
                         
-                        const handleTouchStart = (e: React.TouchEvent) => {
+                        const handleTouchStart = (e: TouchEvent) => {
                           if (!canSwipe) return;
                           setTouchStart(e.touches[0].clientX);
                           setTouchCurrent(e.touches[0].clientX);
                           setIsSwiping(true);
+                          setDidSwipe(false);
                         };
                         
-                        const handleTouchMove = (e: React.TouchEvent) => {
+                        const handleTouchMove = (e: TouchEvent) => {
                           if (!touchStart || !canSwipe) return;
-                          setTouchCurrent(e.touches[0].clientX);
+                          const currentX = e.touches[0].clientX;
+                          setTouchCurrent(currentX);
+                          // Prevent scrolling while swiping horizontally
+                          if (Math.abs(currentX - touchStart) > 10) {
+                            e.preventDefault();
+                            setDidSwipe(true);
+                          }
                         };
                         
                         const handleTouchEnd = () => {
@@ -1079,7 +1174,25 @@ function AdminDashboardContent() {
                           setIsSwiping(false);
                           setTouchStart(null);
                           setTouchCurrent(null);
+                          // Reset didSwipe after a short delay to allow onClick to check it
+                          setTimeout(() => setDidSwipe(false), 100);
                         };
+
+                        // Attach touch event listeners with passive: false
+                        useEffect(() => {
+                          const element = touchElementRef.current;
+                          if (!element) return;
+
+                          element.addEventListener('touchstart', handleTouchStart, { passive: true });
+                          element.addEventListener('touchmove', handleTouchMove, { passive: false });
+                          element.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+                          return () => {
+                            element.removeEventListener('touchstart', handleTouchStart);
+                            element.removeEventListener('touchmove', handleTouchMove);
+                            element.removeEventListener('touchend', handleTouchEnd);
+                          };
+                        }, [touchStart, touchCurrent, canSwipe]);
                         
                         const swipeOffset = isSwiping && touchStart && touchCurrent ? touchCurrent - touchStart : 0;
                         const clampedOffset = Math.max(-200, Math.min(200, swipeOffset));
@@ -1105,16 +1218,15 @@ function AdminDashboardContent() {
                               </svg>
                             </div>
                             
-                            {/* Swipeable content */}
+                            {/* Swipeable content with border */}
                             <div
+                              ref={touchElementRef}
                               style={{
                                 transform: `translateX(${clampedOffset}px)`,
                                 transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                               }}
-                              onTouchStart={handleTouchStart}
-                              onTouchMove={handleTouchMove}
-                              onTouchEnd={handleTouchEnd}
-                              className="bg-white relative z-10"
+                              onClick={() => !didSwipe && setSelectedAppointmentDetails(appointment)}
+                              className={`bg-white relative z-10 cursor-pointer border-l-8 ${borderColor}`}
                             >
                               <div className="px-4 py-4">
                                 <div className="flex items-start justify-between gap-3">
@@ -1123,23 +1235,13 @@ function AdminDashboardContent() {
                                     <h3 className="text-lg font-bold text-gray-900 mb-1 break-words">
                                       {appointment.client_name}
                                     </h3>
-                                    <p className="text-sm text-gray-600 mb-2">
+                                    <p className="text-sm text-gray-600">
                                       {new Date(appointment.appointment_datetime).toLocaleDateString('en-US', { 
                                         month: 'short', 
                                         day: 'numeric', 
                                         year: 'numeric' 
                                       })} at {timeString}
                                     </p>
-                                    <button
-                                      onClick={() => setSelectedAppointmentDetails(appointment)}
-                                      className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                      </svg>
-                                      <span>View Details</span>
-                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -1149,14 +1251,16 @@ function AdminDashboardContent() {
                       };
                       
                       return (
-                        <li key={appointment.id} className={`bg-white rounded-xl shadow-md border-l-8 ${borderColor} overflow-hidden mb-3`}>
+                        <li key={appointment.id} className="bg-white rounded-xl shadow-md overflow-hidden mb-3 relative">
                           {/* Mobile View with Swipe */}
                           <div className="lg:hidden">
                             <SwipeableHistoryCard />
                           </div>
 
                           {/* Desktop View */}
-                          <div className="hidden lg:block px-6 py-4">
+                          <div className="hidden lg:block px-6 py-4 relative">
+                            {/* Colored border for desktop */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-2 ${borderColor}`}></div>
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
@@ -1181,9 +1285,9 @@ function AdminDashboardContent() {
                                   <div className="mb-2 flex items-center space-x-4">
                                     <div>
                                       <span className="font-medium">Barber:</span> {appointment.barber.name}
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">Date:</span> {new Date(appointment.appointment_datetime).toLocaleString()}
+                            </div>
+                            <div>
+                              <span className="font-medium">Date:</span> {new Date(appointment.appointment_datetime).toLocaleString()}
                                     </div>
                                   </div>
                                   <div className="mb-2">
@@ -1195,37 +1299,37 @@ function AdminDashboardContent() {
                                         </span>
                                       ))}
                                     </div>
-                                  </div>
-                                </div>
-                                {appointment.notes && (
-                                  <div className="mt-2 text-sm text-gray-600 bg-gray-100 rounded p-2">
-                                    <span className="font-medium">Notes:</span> {appointment.notes}
-                                  </div>
-                                )}
-                              </div>
-                              {!isPast && (
-                                <div className="ml-4 flex space-x-2">
-                                  {appointment.status === 'pending' && (
-                                    <button
-                                      onClick={() => updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name)}
-                                      className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200"
-                                    >
-                                      Confirm
-                                    </button>
-                                  )}
-                                  {appointment.status !== 'cancelled' && (
-                                    <button
-                                      onClick={() => updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name)}
-                                      className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
-                                    >
-                                      Cancel
-                                    </button>
-                                  )}
-                                </div>
-                              )}
                             </div>
                           </div>
-                        </li>
+                          {appointment.notes && (
+                                  <div className="mt-2 text-sm text-gray-600 bg-gray-100 rounded p-2">
+                              <span className="font-medium">Notes:</span> {appointment.notes}
+                            </div>
+                          )}
+                        </div>
+                              {!isPast && (
+                      <div className="ml-4 flex space-x-2">
+                        {appointment.status === 'pending' && (
+                          <button
+                                      onClick={() => updateAppointmentStatus(appointment.id, 'confirmed', appointment.client_name)}
+                            className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200"
+                          >
+                            Confirm
+                          </button>
+                        )}
+                        {appointment.status !== 'cancelled' && (
+                          <button
+                                      onClick={() => updateAppointmentStatus(appointment.id, 'cancelled', appointment.client_name)}
+                            className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
+                          >
+                            Cancel
+                          </button>
+                                  )}
+                                </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
                       );
                     })}
                     {filteredHistory.length === 0 && (
@@ -1237,9 +1341,9 @@ function AdminDashboardContent() {
                           <p className="text-gray-500 text-lg font-medium">No appointments found</p>
                           <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
                         </div>
-                      </li>
-                    )}
-                  </ul>
+                  </li>
+                )}
+              </ul>
                 </div>
               </div>
             )}
@@ -1599,14 +1703,24 @@ function AdminDashboardContent() {
 
       {/* Appointment Details Modal */}
       {selectedAppointmentDetails && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className={`fixed inset-0 z-[9999] overflow-y-auto backdrop-blur-md bg-white/40 flex items-center justify-center p-4 transition-all duration-300 ${
+            isModalAnimating ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closeModal}
+        >
+          <div 
+            className={`bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transition-all duration-300 ${
+              isModalAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Appointment Details</h2>
                 <button
-                  onClick={() => setSelectedAppointmentDetails(null)}
+                  onClick={closeModal}
                   className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1659,11 +1773,22 @@ function AdminDashboardContent() {
                   </svg>
                   <span className="text-gray-600">{selectedAppointmentDetails.client_email}</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span className="text-gray-600">{selectedAppointmentDetails.client_phone}</span>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-gray-600">{selectedAppointmentDetails.client_phone}</span>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(selectedAppointmentDetails.client_phone)}
+                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                    title="Copy phone number"
+                  >
+                    <svg className="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -1709,12 +1834,39 @@ function AdminDashboardContent() {
 
             {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl border-t">
-              <button
-                onClick={() => setSelectedAppointmentDetails(null)}
-                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
-              >
-                Close
-              </button>
+              {/* Show action buttons for upcoming appointments */}
+              {new Date(selectedAppointmentDetails.appointment_datetime) >= new Date() && (
+                <div className="flex gap-3">
+                  {selectedAppointmentDetails.status !== 'confirmed' && (
+                    <button
+                      onClick={() => {
+                        updateAppointmentStatus(selectedAppointmentDetails.id, 'confirmed', selectedAppointmentDetails.client_name);
+                        closeModal();
+                      }}
+                      className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Confirm</span>
+                    </button>
+                  )}
+                  {selectedAppointmentDetails.status !== 'cancelled' && (
+                    <button
+                      onClick={() => {
+                        updateAppointmentStatus(selectedAppointmentDetails.id, 'cancelled', selectedAppointmentDetails.client_name);
+                        closeModal();
+                      }}
+                      className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>Cancel</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1743,10 +1895,10 @@ function AdminDashboardContent() {
               </div>
               <button
                 onClick={goToNextAppointment}
-                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-xs sm:text-sm font-medium flex-shrink-0"
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-white/20 hover:bg-white/30 rounded-lg transition-all flex-shrink-0"
+                title="View appointment"
               >
-                <span>View</span>
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>

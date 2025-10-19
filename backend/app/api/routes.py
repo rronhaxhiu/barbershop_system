@@ -85,7 +85,7 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
             'price': total_price,
             'notes': db_appointment.notes or '',
             'confirmation_token': db_appointment.confirmation_token,
-            'confirmation_url': f"http://localhost:3000/confirm/{db_appointment.confirmation_token}"
+            'confirmation_url': f"http://192.168.3.253:3000/confirm/{db_appointment.confirmation_token}"
         }
         email_service.send_appointment_confirmation(appointment_data)
     except Exception as e:
