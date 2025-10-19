@@ -4,3 +4,6 @@ sqlalchemy
 python-multipart
 jinja2
 python-dateutil
+bcrypt
+python-jose[cryptography]
+python-dotenv

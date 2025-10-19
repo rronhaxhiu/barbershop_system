@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { authUtils } from '@/lib/auth';
 
 interface BarberForm {
   name: string;
@@ -12,10 +14,14 @@ interface BarberForm {
   working_hours: string;
 }
 
-export default function NewBarberPage() {
+function NewBarberContent() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<BarberForm>();
+
+  const handleLogout = () => {
+    authUtils.logout();
+  };
 
   const onSubmit = async (data: BarberForm) => {
     setSubmitting(true);
@@ -54,9 +60,15 @@ export default function NewBarberPage() {
             <Link href="/admin" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
             </Link>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="flex items-center space-x-4">
               <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
               <Link href="/admin" className="text-gray-500 hover:text-gray-900">Dashboard</Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -134,5 +146,13 @@ export default function NewBarberPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function NewBarberPage() {
+  return (
+    <ProtectedRoute>
+      <NewBarberContent />
+    </ProtectedRoute>
   );
 }

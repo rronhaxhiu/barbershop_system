@@ -7,6 +7,8 @@ import json
 from app.database import get_db
 from app import crud, schemas
 from app.email_service import email_service
+from app.auth import authenticate_admin, create_access_token, get_current_admin, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.models import Admin
 
 router = APIRouter()
 
@@ -101,13 +103,67 @@ def confirm_appointment(token: str, db: Session = Depends(get_db)):
     
     return {"message": "Appointment confirmed successfully", "appointment_id": appointment.id}
 
-# Admin routes
+@router.get("/barbers/{barber_id}/available-slots")
+def get_available_slots(
+    barber_id: int, 
+    date: str,  # Format: YYYY-MM-DD
+    duration_minutes: int,
+    db: Session = Depends(get_db)
+):
+    """Get available time slots for a barber on a specific date"""
+    # Validate barber exists
+    barber = crud.get_barber(db, barber_id)
+    if not barber:
+        raise HTTPException(status_code=404, detail="Barber not found")
+    
+    # Parse the date
+    try:
+        from datetime import datetime, time
+        selected_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Generate available slots
+    available_slots = crud.get_available_time_slots(
+        db, 
+        barber_id, 
+        selected_date, 
+        duration_minutes
+    )
+    
+    return {"date": date, "slots": available_slots}
+
+# Authentication routes
+@router.post("/auth/login", response_model=schemas.Token)
+def login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
+    """Admin login endpoint"""
+    admin = authenticate_admin(db, login_data.username, login_data.password)
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = create_access_token(
+        data={"sub": admin.username},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/auth/me", response_model=schemas.AdminUser)
+async def get_current_user(current_admin: Admin = Depends(get_current_admin)):
+    """Get current authenticated admin user"""
+    return current_admin
+
+# Admin routes (protected)
 @router.get("/admin/appointments", response_model=List[schemas.AppointmentWithDetails])
 def get_all_appointments(
     skip: int = 0, 
     limit: int = 100, 
     status: Optional[str] = None, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
 ):
     """Admin: Get all appointments with details"""
     from sqlalchemy.orm import joinedload
@@ -126,12 +182,21 @@ def get_all_appointments(
     return appointments
 
 @router.post("/admin/barbers", response_model=schemas.Barber)
-def create_barber(barber: schemas.BarberCreate, db: Session = Depends(get_db)):
+def create_barber(
+    barber: schemas.BarberCreate, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Create a new barber"""
     return crud.create_barber(db, barber)
 
 @router.put("/admin/barbers/{barber_id}", response_model=schemas.Barber)
-def update_barber(barber_id: int, barber_update: schemas.BarberUpdate, db: Session = Depends(get_db)):
+def update_barber(
+    barber_id: int, 
+    barber_update: schemas.BarberUpdate, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Update a barber"""
     updated_barber = crud.update_barber(db, barber_id, barber_update)
     if not updated_barber:
@@ -139,14 +204,22 @@ def update_barber(barber_id: int, barber_update: schemas.BarberUpdate, db: Sessi
     return updated_barber
 
 @router.delete("/admin/barbers/{barber_id}")
-def delete_barber(barber_id: int, db: Session = Depends(get_db)):
+def delete_barber(
+    barber_id: int, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Delete (deactivate) a barber"""
     if not crud.delete_barber(db, barber_id):
         raise HTTPException(status_code=404, detail="Barber not found")
     return {"message": "Barber deleted successfully"}
 
 @router.post("/admin/services", response_model=schemas.Service)
-def create_service(service: schemas.ServiceCreate, db: Session = Depends(get_db)):
+def create_service(
+    service: schemas.ServiceCreate, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Create a new service"""
     # Validate barber exists
     barber = crud.get_barber(db, service.barber_id)
@@ -156,7 +229,12 @@ def create_service(service: schemas.ServiceCreate, db: Session = Depends(get_db)
     return crud.create_service(db, service)
 
 @router.put("/admin/services/{service_id}", response_model=schemas.Service)
-def update_service(service_id: int, service_update: schemas.ServiceUpdate, db: Session = Depends(get_db)):
+def update_service(
+    service_id: int, 
+    service_update: schemas.ServiceUpdate, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Update a service"""
     updated_service = crud.update_service(db, service_id, service_update)
     if not updated_service:
@@ -164,7 +242,12 @@ def update_service(service_id: int, service_update: schemas.ServiceUpdate, db: S
     return updated_service
 
 @router.put("/admin/appointments/{appointment_id}", response_model=schemas.Appointment)
-def update_appointment(appointment_id: int, appointment_update: schemas.AppointmentUpdate, db: Session = Depends(get_db)):
+def update_appointment(
+    appointment_id: int, 
+    appointment_update: schemas.AppointmentUpdate, 
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin)
+):
     """Admin: Update an appointment"""
     updated_appointment = crud.update_appointment(db, appointment_id, appointment_update)
     if not updated_appointment:

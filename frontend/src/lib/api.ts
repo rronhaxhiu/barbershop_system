@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authUtils } from './auth';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -10,9 +11,14 @@ const api = axios.create({
   withCredentials: true, // Enable CORS credentials
 });
 
-// Request interceptor
+// Request interceptor to add JWT token
 api.interceptors.request.use(
   (config) => {
+    // Add JWT token to requests if available
+    const token = authUtils.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -32,6 +38,13 @@ api.interceptors.response.use(
       
       // Handle specific error codes
       switch (error.response.status) {
+        case 401:
+          // Unauthorized - redirect to login if on admin page
+          console.error('Unauthorized:', error.response.data);
+          if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+            authUtils.logout();
+          }
+          break;
         case 400:
           console.error('Bad Request:', error.response.data);
           break;

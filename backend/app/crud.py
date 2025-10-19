@@ -143,3 +143,41 @@ def check_appointment_conflict(db: Session, barber_id: int, appointment_datetime
             return True
 
     return False
+
+def get_available_time_slots(db: Session, barber_id: int, date, duration_minutes: int) -> List[dict]:
+    """Generate available time slots for a barber on a specific date"""
+    from datetime import datetime, time, timedelta
+    
+    # Define working hours (9 AM to 6 PM)
+    work_start = time(9, 0)
+    work_end = time(18, 0)
+    
+    # Slot interval in minutes (every 30 minutes)
+    slot_interval = 30
+    
+    # Combine date with work start time
+    current_slot = datetime.combine(date, work_start)
+    end_of_day = datetime.combine(date, work_end)
+    
+    available_slots = []
+    
+    # Generate slots
+    while current_slot < end_of_day:
+        # Check if this slot plus duration fits within working hours
+        slot_end = current_slot + timedelta(minutes=duration_minutes)
+        
+        if slot_end.time() <= work_end:
+            # Check if the slot is available (no conflicts)
+            if not check_appointment_conflict(db, barber_id, current_slot, duration_minutes):
+                # Check if the slot is not in the past
+                if current_slot > datetime.now():
+                    available_slots.append({
+                        "time": current_slot.strftime("%H:%M"),
+                        "datetime": current_slot.isoformat(),
+                        "available": True
+                    })
+        
+        # Move to next slot
+        current_slot += timedelta(minutes=slot_interval)
+    
+    return available_slots

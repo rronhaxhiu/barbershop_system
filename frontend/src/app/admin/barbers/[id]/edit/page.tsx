@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { authUtils } from '@/lib/auth';
 
 interface BarberForm {
   name: string;
@@ -28,7 +30,7 @@ interface Barber {
   is_active: boolean;
 }
 
-export default function EditBarberPage() {
+function EditBarberContent() {
   const router = useRouter();
   const params = useParams();
   const barberId = params.id as string;
@@ -38,6 +40,10 @@ export default function EditBarberPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<BarberForm>();
+
+  const handleLogout = () => {
+    authUtils.logout();
+  };
 
   useEffect(() => {
     fetchBarber();
@@ -126,9 +132,15 @@ export default function EditBarberPage() {
             <Link href="/admin" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
             </Link>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="flex items-center space-x-4">
               <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
               <Link href="/admin" className="text-gray-500 hover:text-gray-900">Dashboard</Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -245,5 +257,13 @@ export default function EditBarberPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function EditBarberPage() {
+  return (
+    <ProtectedRoute>
+      <EditBarberContent />
+    </ProtectedRoute>
   );
 }

@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { authUtils } from '@/lib/auth';
 
 interface Service {
   id: number;
@@ -28,7 +30,7 @@ interface ServiceForm {
   duration_minutes: number;
 }
 
-export default function ManageServicesPage() {
+function ManageServicesContent() {
   const params = useParams();
   const barberId = params.id as string;
   
@@ -39,6 +41,10 @@ export default function ManageServicesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ServiceForm>();
+
+  const handleLogout = () => {
+    authUtils.logout();
+  };
 
   useEffect(() => {
     fetchData();
@@ -142,9 +148,15 @@ export default function ManageServicesPage() {
             <Link href="/admin" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
             </Link>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="flex items-center space-x-4">
               <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
               <Link href="/admin" className="text-gray-500 hover:text-gray-900">Dashboard</Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -341,5 +353,13 @@ export default function ManageServicesPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ManageServicesPage() {
+  return (
+    <ProtectedRoute>
+      <ManageServicesContent />
+    </ProtectedRoute>
   );
 }

@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import datetime
+import re
 
 # Barber schemas
 class BarberBase(BaseModel):
@@ -58,6 +59,27 @@ class AppointmentBase(BaseModel):
     appointment_datetime: datetime
     notes: Optional[str] = None
     
+    @field_validator('client_phone')
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        # Remove whitespace for validation
+        phone_cleaned = v.strip()
+        
+        # Check if empty
+        if not phone_cleaned:
+            raise ValueError('Phone number cannot be empty')
+        
+        # Check if it contains only valid phone characters
+        if not re.match(r'^[0-9+\-\s()]+$', phone_cleaned):
+            raise ValueError('Phone number must contain only numbers and phone formatting characters (+, -, spaces, parentheses)')
+        
+        # Extract only digits to check minimum length
+        digits_only = re.sub(r'[^0-9]', '', phone_cleaned)
+        if len(digits_only) < 7:
+            raise ValueError('Phone number must contain at least 7 digits')
+        
+        return v
+    
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()
@@ -100,3 +122,25 @@ class TimeSlot(BaseModel):
 class AvailabilityResponse(BaseModel):
     date: str
     slots: List[TimeSlot]
+
+# Authentication schemas
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+class AdminUser(BaseModel):
+    id: int
+    username: str
+    email: str
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True

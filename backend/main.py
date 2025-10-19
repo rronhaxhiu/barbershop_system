@@ -1,11 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
-from app.database import engine
-from app.models import Base
+from app.init_db import init_db
+import logging
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize database (idempotent: creates tables and seeds data)
+logger.info("Initializing database...")
+init_db()
+logger.info("Database initialization complete")
 
 app = FastAPI(
     title="Barbershop Appointment System",

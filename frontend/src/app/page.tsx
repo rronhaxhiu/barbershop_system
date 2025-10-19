@@ -12,7 +12,6 @@ export default function Home() {
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link href="/book" className="text-gray-500 hover:text-gray-900">Book Appointment</Link>
-              <Link href="/admin" className="text-gray-500 hover:text-gray-900">Admin</Link>
             </nav>
           </div>
         </div>

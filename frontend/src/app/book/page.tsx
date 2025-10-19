@@ -30,6 +30,22 @@ interface BookingForm {
   notes?: string;
 }
 
+const COUNTRY_CODES = [
+  { code: '+383', country: 'Kosovo', flag: '🇽🇰' },
+  { code: '+355', country: 'Albania', flag: '🇦🇱' },
+  { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+39', country: 'Italy', flag: '🇮🇹' },
+  { code: '+34', country: 'Spain', flag: '🇪🇸' },
+  { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+  { code: '+43', country: 'Austria', flag: '🇦🇹' },
+  { code: '+381', country: 'Serbia', flag: '🇷🇸' },
+  { code: '+389', country: 'North Macedonia', flag: '🇲🇰' },
+  { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+];
+
 export default function BookingPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
@@ -38,6 +54,11 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [countryCode, setCountryCode] = useState('+383');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<Array<{ time: string; datetime: string; available: boolean }>>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState('');
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<BookingForm>({
     defaultValues: {
@@ -98,21 +119,74 @@ export default function BookingPage() {
     }
   };
 
+  const fetchAvailableSlots = async (date: string) => {
+    if (!selectedBarber || selectedServices.length === 0) return;
+    
+    setLoadingSlots(true);
+    try {
+      const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0);
+      const response = await api.get(`/barbers/${selectedBarber.id}/available-slots`, {
+        params: {
+          date: date,
+          duration_minutes: totalDuration
+        }
+      });
+      setAvailableSlots(response.data.slots);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      alert('Failed to load available time slots. Please try again.');
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    setSelectedSlot('');
+    setAvailableSlots([]);
+    if (date) {
+      fetchAvailableSlots(date);
+    }
+  };
+
+  const handleSlotSelect = (slotDatetime: string) => {
+    setSelectedSlot(slotDatetime);
+    setValue('appointment_datetime', slotDatetime);
+  };
+
   const onSubmit = async (data: BookingForm) => {
     setSubmitting(true);
     try {
-      // Ensure datetime has seconds appended
+      // Combine country code with phone number
+      const fullPhoneNumber = `${countryCode} ${data.client_phone}`.trim();
+      
+      // Use the selected slot datetime (already in ISO format)
       const appointmentData = {
         ...data,
-        appointment_datetime: data.appointment_datetime.length === 16 
-          ? `${data.appointment_datetime}:00` 
-          : data.appointment_datetime
+        client_phone: fullPhoneNumber,
+        appointment_datetime: selectedSlot
       };
       await api.post('/appointments', appointmentData);
       setSuccess(true);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating appointment:', error);
-      alert('Failed to book appointment. Please try again.');
+      
+      // Extract error message from backend
+      let errorMessage = 'Failed to book appointment. Please try again.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { detail?: string | Array<{ msg: string }> } } };
+        if (axiosError.response?.data?.detail) {
+          if (Array.isArray(axiosError.response.data.detail)) {
+            // Pydantic validation errors
+            errorMessage = axiosError.response.data.detail.map((err: { msg: string }) => err.msg).join(', ');
+          } else {
+            errorMessage = axiosError.response.data.detail;
+          }
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -124,9 +198,15 @@ export default function BookingPage() {
       alert('Please select at least one service');
       return;
     }
-    if (currentStep === 2 && !watch('appointment_datetime')) {
-      alert('Please select a date and time');
-      return;
+    if (currentStep === 2) {
+      if (!selectedDate) {
+        alert('Please select a date');
+        return;
+      }
+      if (!selectedSlot) {
+        alert('Please select a time slot');
+        return;
+      }
     }
     setCurrentStep(prev => Math.min(prev + 1, 3));
   };
@@ -184,7 +264,6 @@ export default function BookingPage() {
             </Link>
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
-              <Link href="/admin" className="text-gray-500 hover:text-gray-900">Admin</Link>
             </nav>
           </div>
         </div>
@@ -350,23 +429,61 @@ export default function BookingPage() {
                   </div>
                 )}
 
-                <div className="max-w-md mx-auto">
+                {/* Date Picker */}
+                <div>
                   <label className="block text-lg font-medium text-gray-900 mb-3 text-center">
-                    Select Your Appointment Time
+                    Select a Date
                   </label>
-                  <input
-                    type="datetime-local"
-                    {...register('appointment_datetime', { required: 'Date and time is required' })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-lg"
-                    min={new Date().toISOString().slice(0, 16)}
-                  />
-                  {errors.appointment_datetime && (
-                    <p className="mt-2 text-sm text-red-600 text-center">{errors.appointment_datetime.message}</p>
-                  )}
-                  <p className="mt-3 text-sm text-gray-500 text-center">
-                    Please select a date and time for your appointment
-                  </p>
+                  <div className="max-w-md mx-auto">
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-lg"
+                    />
+                  </div>
                 </div>
+
+                {/* Time Slots */}
+                {selectedDate && (
+                  <div>
+                    <label className="block text-lg font-medium text-gray-900 mb-3 text-center">
+                      Select a Time Slot
+                    </label>
+                    
+                    {loadingSlots ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                      </div>
+                    ) : availableSlots.length > 0 ? (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
+                        {availableSlots.map((slot) => (
+                          <button
+                            key={slot.datetime}
+                            type="button"
+                            onClick={() => handleSlotSelect(slot.datetime)}
+                            className={`px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                              selectedSlot === slot.datetime
+                                ? 'bg-indigo-600 text-white shadow-md transform scale-105'
+                                : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="text-lg mb-2">No available slots for this date</p>
+                        <p className="text-sm">Please select a different date</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Hidden input for form validation */}
+                <input type="hidden" {...register('appointment_datetime', { required: 'Date and time is required' })} />
               </div>
             )}
 
@@ -416,15 +533,44 @@ export default function BookingPage() {
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Phone Number *
                     </label>
-                    <input
-                      type="tel"
-                      {...register('client_phone', { required: 'Phone number is required' })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
-                      placeholder="(555) 123-4567"
-                    />
+                    <div className="flex gap-2">
+                      {/* Country Code Selector */}
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="w-32 px-3 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 bg-white"
+                      >
+                        {COUNTRY_CODES.map((country) => (
+                          <option key={country.code} value={country.code}>
+                            {country.flag} {country.code}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {/* Phone Number Input */}
+                      <input
+                        type="tel"
+                        {...register('client_phone', { 
+                          required: 'Phone number is required',
+                          pattern: {
+                            value: /^[0-9\s\-()]+$/,
+                            message: 'Phone number must contain only numbers and formatting characters (-, spaces, parentheses)'
+                          },
+                          minLength: {
+                            value: 7,
+                            message: 'Phone number must be at least 7 digits'
+                          }
+                        })}
+                        className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                        placeholder="49 123 456"
+                      />
+                    </div>
                     {errors.client_phone && (
                       <p className="mt-1 text-sm text-red-600">{errors.client_phone.message}</p>
                     )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      Example: {countryCode} 49 123 456
+                    </p>
                   </div>
 
                   <div>
@@ -455,7 +601,7 @@ export default function BookingPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Date:</span>
                       <span className="font-medium text-gray-900">
-                        {watch('appointment_datetime') ? new Date(watch('appointment_datetime')).toLocaleString() : 'Not selected'}
+                        {selectedSlot ? new Date(selectedSlot).toLocaleString() : 'Not selected'}
                       </span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-indigo-300">

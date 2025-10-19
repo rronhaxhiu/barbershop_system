@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { authUtils } from '@/lib/auth';
 
 interface Barber {
   id: number;
@@ -36,11 +38,15 @@ interface Appointment {
   services: Service[];
 }
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState<'appointments' | 'barbers' | 'services'>('appointments');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = () => {
+    authUtils.logout();
+  };
 
   useEffect(() => {
     fetchData();
@@ -102,12 +108,17 @@ export default function AdminDashboard() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <Link href="/" className="flex items-center">
+            <Link href="/admin" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900">💈 Barbershop Admin</span>
             </Link>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="flex items-center space-x-4">
               <Link href="/" className="text-gray-500 hover:text-gray-900">Home</Link>
-              <Link href="/book" className="text-gray-500 hover:text-gray-900">Book Appointment</Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -275,5 +286,13 @@ export default function AdminDashboard() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }

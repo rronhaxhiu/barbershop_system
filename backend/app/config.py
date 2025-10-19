@@ -12,8 +12,12 @@ class Settings:
     from_email: str = os.getenv("FROM_EMAIL", "test@example.com")
 
     # Application
-    secret_key: str = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production-minimum-32-characters")
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     backend_url: str = os.getenv("BACKEND_URL", "http://localhost:8000")
+    
+    # JWT Settings
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24  # 24 hours
 
 settings = Settings()
