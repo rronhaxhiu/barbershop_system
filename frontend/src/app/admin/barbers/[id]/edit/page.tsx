@@ -101,10 +101,10 @@ function EditBarberContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading barber data...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-500 mx-auto"></div>
+          <p className="mt-4 text-white/60 tracking-wide">LOADING BARBER DATA...</p>
         </div>
       </div>
     );
@@ -112,14 +112,14 @@ function EditBarberContent() {
 
   if (!barber) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Barber Not Found</h1>
+          <h1 className="text-2xl font-bold text-white mb-4 tracking-tight">BARBER NOT FOUND</h1>
           <Link
             href="/admin"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-black bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 transition-all shadow-lg shadow-emerald-500/30"
           >
-            Back to Admin
+            BACK TO ADMIN
           </Link>
         </div>
       </div>
@@ -127,21 +127,21 @@ function EditBarberContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-black/95 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 sm:py-6">
             <Link href="/admin" className="flex items-center">
-              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">💈 Barbershop</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-white tracking-wider">HOUSE OF CUTZ ADMIN</span>
             </Link>
             <nav className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/" className="hidden sm:inline text-gray-500 hover:text-gray-900">Home</Link>
+              <Link href="/" className="hidden sm:inline text-white/60 hover:text-white transition-colors">HOME</Link>
               <button
                 onClick={handleLogout}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white border-2 border-red-500/50 bg-red-500/20 rounded-xl hover:bg-red-500/30 transition-colors"
               >
-                Logout
+                LOGOUT
               </button>
             </nav>
           </div>
@@ -150,22 +150,22 @@ function EditBarberContent() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
+        <div className="bg-zinc-900 border border-white/10 rounded-2xl shadow-xl p-4 sm:p-8">
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Barber</h1>
-            <p className="mt-2 text-sm sm:text-base text-gray-600">Update {barber.name}'s information.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Edit Barber</h1>
+            <p className="mt-2 text-sm sm:text-base text-white/70">Update {barber.name}'s information.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Barber Name *
               </label>
               <input
                 type="text"
                 {...register('name', { required: 'Name is required' })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-3 border-2 border-white/30 bg-black rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-white transition-all placeholder:text-white/40"
                 placeholder="Enter barber's full name"
               />
               {errors.name && (
@@ -175,13 +175,13 @@ function EditBarberContent() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Description *
               </label>
               <textarea
                 {...register('description', { required: 'Description is required' })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-3 border-2 border-white/30 bg-black rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-white transition-all placeholder:text-white/40"
                 placeholder="Describe the barber's experience, specialties, and skills..."
               />
               {errors.description && (
@@ -191,16 +191,16 @@ function EditBarberContent() {
 
             {/* Working Hours */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Working Hours</h3>
+              <h3 className="text-lg font-medium text-white mb-4">Working Hours</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
                   <div key={day}>
-                    <label className="block text-sm font-medium text-gray-900 mb-1 capitalize">
+                    <label className="block text-sm font-medium text-white mb-1 capitalize">
                       {day}
                     </label>
                     <select
                       {...register(`working_hours.${day}` as any)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                      className="w-full px-4 py-3 border-2 border-white/30 bg-black rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-white transition-all placeholder:text-white/40"
                     >
                       <option value="closed">Closed</option>
                       <option value="08:00-16:00">8:00 AM - 4:00 PM</option>
@@ -217,9 +217,9 @@ function EditBarberContent() {
             </div>
 
             {/* Status */}
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+            <div className="bg-emerald-500/5 border border-emerald-500/30 rounded-xl p-4">
               <h3 className="text-sm font-medium text-gray-800 mb-2">Status</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/70">
                 Status: <span className={`font-medium ${barber.is_active ? 'text-green-600' : 'text-red-600'}`}>
                   {barber.is_active ? 'Active' : 'Inactive'}
                 </span>
@@ -230,7 +230,7 @@ function EditBarberContent() {
             <div className="flex flex-row gap-3">
               <Link
                 href="/admin"
-                className="flex items-center justify-center space-x-2 px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium w-1/2 sm:w-auto"
+                className="flex items-center justify-center space-x-2 px-6 py-2.5 border-2 border-white/30 text-white/80 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all font-medium w-1/2 sm:w-auto"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -240,7 +240,7 @@ function EditBarberContent() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium w-1/2 sm:w-auto"
+                className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 text-black rounded-xl hover:from-emerald-600 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium w-1/2 sm:w-auto"
               >
                 {submitting ? (
                   <>
@@ -264,7 +264,7 @@ function EditBarberContent() {
 
           {/* Additional Actions */}
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-medium text-white mb-4">Quick Actions</h3>
             <div className="flex gap-3">
               <Link
                 href={`/admin/barbers/${barberId}/services`}
@@ -277,7 +277,7 @@ function EditBarberContent() {
               </Link>
               <Link
                 href="/admin"
-                className="flex items-center space-x-2 px-5 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
+                className="flex items-center space-x-2 px-5 py-3 border-2 border-white/30 text-white/80 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all font-medium"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

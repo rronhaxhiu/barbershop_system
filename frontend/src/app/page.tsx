@@ -174,7 +174,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 border border-white/20 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <span className="text-3xl">✂</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 tracking-wide">MASTER CRAFTSMANSHIP</h3>
@@ -184,7 +184,7 @@ export default function Home() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 border border-white/20 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <span className="text-3xl">⚡</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 tracking-wide">INSTANT BOOKING</h3>
@@ -194,7 +194,7 @@ export default function Home() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 border border-white/20 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <span className="text-3xl">💎</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 tracking-wide">PREMIUM PRODUCTS</h3>
@@ -204,7 +204,7 @@ export default function Home() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 border border-white/20 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <span className="text-3xl">⭐</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 tracking-wide">PERSONALIZED SERVICE</h3>

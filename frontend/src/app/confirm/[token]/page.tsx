@@ -36,23 +36,23 @@ export default function ConfirmationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Confirming your appointment...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-500 mx-auto"></div>
+          <p className="mt-4 text-white/60 tracking-wide">CONFIRMING YOUR APPOINTMENT...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-black/95 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">💈 Barbershop</span>
+              <span className="text-2xl font-bold text-white tracking-wider">HOUSE OF CUTZ</span>
             </Link>
           </div>
         </div>
@@ -60,19 +60,19 @@ export default function ConfirmationPage() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="bg-zinc-900 border border-white/10 rounded-2xl shadow-xl p-8 text-center">
           {confirmed ? (
             <>
-              <div className="text-green-500 text-6xl mb-6">✅</div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Appointment Confirmed!
+              <div className="text-emerald-400 text-6xl mb-6">✅</div>
+              <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">
+                APPOINTMENT CONFIRMED!
               </h1>
-              <p className="text-gray-600 mb-8">
+              <p className="text-white/70 mb-8">
                 Your appointment has been successfully confirmed. We look forward to seeing you!
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-8">
-                <h3 className="text-lg font-medium text-green-800 mb-2">What's Next?</h3>
-                <ul className="text-green-700 text-sm space-y-1">
+              <div className="bg-emerald-500/5 border-2 border-emerald-500/30 rounded-xl p-4 mb-8">
+                <h3 className="text-lg font-medium text-emerald-400 mb-2 tracking-wide">WHAT'S NEXT?</h3>
+                <ul className="text-white/70 text-sm space-y-1">
                   <li>• You'll receive a reminder email 24 hours before your appointment</li>
                   <li>• Please arrive 5-10 minutes early</li>
                   <li>• If you need to reschedule, please call us at least 24 hours in advance</li>
@@ -81,30 +81,30 @@ export default function ConfirmationPage() {
               <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
                 <Link
                   href="/"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-black font-semibold rounded-xl hover:from-emerald-600 hover:to-green-600 transition-all shadow-lg shadow-emerald-500/30"
                 >
-                  Back to Home
+                  BACK TO HOME
                 </Link>
                 <Link
                   href="/book"
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-6 py-3 border-2 border-white/30 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
                 >
-                  Book Another Appointment
+                  BOOK ANOTHER APPOINTMENT
                 </Link>
               </div>
             </>
           ) : (
             <>
-              <div className="text-red-500 text-6xl mb-6">❌</div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Confirmation Failed
+              <div className="text-red-400 text-6xl mb-6">❌</div>
+              <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">
+                CONFIRMATION FAILED
               </h1>
-              <p className="text-gray-600 mb-8">
+              <p className="text-white/70 mb-8">
                 {error || 'Unable to confirm your appointment.'}
               </p>
-              <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-8">
-                <h3 className="text-lg font-medium text-red-800 mb-2">Possible Reasons:</h3>
-                <ul className="text-red-700 text-sm space-y-1">
+              <div className="bg-red-500/5 border-2 border-red-500/30 rounded-xl p-4 mb-8">
+                <h3 className="text-lg font-medium text-red-400 mb-2 tracking-wide">POSSIBLE REASONS:</h3>
+                <ul className="text-white/70 text-sm space-y-1">
                   <li>• The confirmation link has expired</li>
                   <li>• The appointment has already been confirmed</li>
                   <li>• The confirmation link is invalid</li>
@@ -113,15 +113,15 @@ export default function ConfirmationPage() {
               <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
                 <Link
                   href="/"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-black font-semibold rounded-xl hover:from-emerald-600 hover:to-green-600 transition-all shadow-lg shadow-emerald-500/30"
                 >
-                  Back to Home
+                  BACK TO HOME
                 </Link>
                 <Link
                   href="/book"
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-6 py-3 border-2 border-white/30 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
                 >
-                  Book New Appointment
+                  BOOK NEW APPOINTMENT
                 </Link>
               </div>
             </>

@@ -55,9 +55,9 @@ function NewBarberContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-black/95 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/admin" className="flex items-center">
@@ -79,7 +79,7 @@ function NewBarberContent() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-zinc-900 border border-white/10 rounded-2xl shadow-xl p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Add New Barber</h1>
             <p className="mt-2 text-gray-600">Create a new barber profile with their information.</p>
@@ -133,7 +133,7 @@ function NewBarberContent() {
             <div className="flex justify-end space-x-4">
               <Link
                 href="/admin"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="px-6 py-2 border-2 border-white/30 text-white/80 rounded-xl hover:bg-white/10"
               >
                 Cancel
               </Link>
